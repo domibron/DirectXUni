@@ -38,6 +38,7 @@ int WINAPI WinMain(
 		}
 		else {
 			// Game code here.
+			renderer.RenderFrame();
 		}
 	}
 

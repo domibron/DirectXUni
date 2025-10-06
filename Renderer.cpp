@@ -7,6 +7,37 @@
 Renderer::Renderer(Window& inWindow)
 	: window(inWindow)
 {
+	if (InitD3D() != S_OK) {
+		LOG("Failed to initialise D3D renderer.");
+		return;
+	}
+}
+
+void Renderer::Clean()
+{
+	if (backbuffer) backbuffer->Release();
+	if (swapchain) swapchain->Release();
+	if (dev) dev->Release();
+	if (devcon) devcon->Release();
+}
+
+void Renderer::RenderFrame()
+{
+	// C;ear back buffer with desired color
+	FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	devcon->ClearRenderTargetView(backbuffer, bg);
+
+	// Alternatively, include <DirectXColors.h> and do
+	//devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
+	// You can press F12 on the Colors or DarkSlateGray to see a list of all colours
+	// Adding a using namespace DirectX will make it less cumbersome to use this
+
+	// Flip the back and front buffers around. Display on screen
+	swapchain->Present(0, 0);
+}
+
+long Renderer::InitD3D()
+{
 	// Create a struct to hold the information about the swap chain
 	DXGI_SWAP_CHAIN_DESC scd = {}; // sets everything to 0 to remove garb vals
 	scd.BufferCount = 1; // One back buffer
@@ -38,12 +69,40 @@ Renderer::Renderer(Window& inWindow)
 
 	if (FAILED(hr)) {
 		LOG("Failed to create a renderer");
+		return hr;
 	}
-}
 
-void Renderer::Clean()
-{
-	if (swapchain) swapchain->Release();
-	if (dev) dev->Release();
-	if (devcon) devcon->Release();
+	// Get the address of teh back buffer
+	ID3D11Texture2D* backBufferTexture = nullptr;
+
+	// Get the back buffer from the swapchain
+	hr = swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
+
+	if (FAILED(hr)) {
+		LOG("Failed to get backbuffer texture.");
+		return hr; // Abort
+	}
+
+	hr = dev->CreateRenderTargetView(backBufferTexture, NULL, &backbuffer);
+	// dangling pointer :3
+	backBufferTexture->Release();// yeet back into the void, we dont need you anymore.
+	if (FAILED(hr)) {
+		LOG("Failed to create backbuffer view.");
+		return hr;
+	}
+
+	// Set the back buffer as the current render target
+	devcon->OMSetRenderTargets(1, &backbuffer, NULL);
+
+	// Define and set the viewport
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = (float)window.GetWidth();
+	viewport.Height = (float)window.GetHeight();
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1;
+	devcon->RSSetViewports(1, &viewport);
+
+	return S_OK;
 }
