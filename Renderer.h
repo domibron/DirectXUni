@@ -1,10 +1,6 @@
 #pragma once
 
-// Must be before #include <DirectXMath.h> - allows direct access of DirectX Math Matrices/Vectors at cost of performace
-//#define _XM_NO_INTRINSICS_
-//#define XM_NO_
-#include <DirectXMath.h>
-using namespace DirectX;
+
 
 struct IDXGISwapChain;
 struct ID3D11Device;
@@ -17,11 +13,7 @@ struct ID3D11InputLayout;
 
 class Window;
 
-struct Vertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT4 Color;
-};
+
 
 class Renderer
 {

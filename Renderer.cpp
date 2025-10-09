@@ -1,13 +1,22 @@
 #include "Renderer.h"
 #include <d3d11.h>
 
-
+// Must be before #include <DirectXMath.h> - allows direct access of DirectX Math Matrices/Vectors at cost of performace
+//#define _XM_NO_INTRINSICS_
+//#define XM_NO_
+#include <DirectXMath.h>
+using namespace DirectX;
 
 
 #include <d3dcompiler.h>
 #include "Debug.h"
 #include "Window.h"
 
+struct Vertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
 
 Renderer::Renderer(Window& inWindow)
 	: window(inWindow)
@@ -135,7 +144,7 @@ long Renderer::InitPipeline()
 		return result;
 	}
 
-	result = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "vs_4_0", 0, 0, &PS, &pErrorBlob);
+	result = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_4_0", 0, 0, &PS, &pErrorBlob);
 
 	if (FAILED(result)) {
 		LOG(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
