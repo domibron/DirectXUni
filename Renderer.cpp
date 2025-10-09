@@ -1,8 +1,13 @@
 #include "Renderer.h"
 #include <d3d11.h>
 
+
+
+
+#include <d3dcompiler.h>
 #include "Debug.h"
 #include "Window.h"
+
 
 Renderer::Renderer(Window& inWindow)
 	: window(inWindow)
@@ -11,10 +16,19 @@ Renderer::Renderer(Window& inWindow)
 		LOG("Failed to initialise D3D renderer.");
 		return;
 	}
+
+	if (InitPipeline() != S_OK) {
+		LOG("Failed to initialise shader pipeline.");
+		return;
+	}
 }
 
 void Renderer::Clean()
 {
+	if (pVS) pVS->Release();
+	if (pPS) pPS->Release();
+	if (pIL) pIL->Release();
+
 	if (backbuffer) backbuffer->Release();
 	if (swapchain) swapchain->Release();
 	if (dev) dev->Release();
@@ -103,6 +117,60 @@ long Renderer::InitD3D()
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
 	devcon->RSSetViewports(1, &viewport);
+
+	return S_OK;
+}
+
+long Renderer::InitPipeline()
+{
+	// Load and compile the vertex and pixel shaders
+	HRESULT result;
+	ID3DBlob* VS, *PS, *pErrorBlob;
+
+	result = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_4_0", 0, 0, &VS, &pErrorBlob);
+
+	if (FAILED(result)) {
+		LOG(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
+		pErrorBlob->Release();
+		return result;
+	}
+
+	result = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "vs_4_0", 0, 0, &PS, &pErrorBlob);
+
+	if (FAILED(result)) {
+		LOG(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
+		pErrorBlob->Release();
+		return result;
+	}
+
+	// Encapsulate both shaders into shader objects
+	dev->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &pVS);
+	dev->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &pPS);
+
+	// TODO: add error handling to the two functions above.
+
+	// Set shader objects as active shaders in the pipeline
+	devcon->VSSetShader(pVS, 0, 0);
+	devcon->PSSetShader(pPS, 0, 0);
+
+	//Create the input layout discription
+	D3D11_INPUT_ELEMENT_DESC ied[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	result = dev->CreateInputLayout(ied, ARRAYSIZE(ied), VS->GetBufferPointer(), VS->GetBufferSize(), &pIL);
+	VS->Release();
+	PS->Release();
+
+	if (FAILED(result)){
+		LOG("Failed to create input layout");
+		return result;
+	}
+
+	// should be in render loop
+	devcon->IASetInputLayout(pIL);
 
 	return S_OK;
 }
