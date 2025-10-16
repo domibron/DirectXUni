@@ -12,6 +12,8 @@ using namespace DirectX;
 #include "Debug.h"
 #include "Window.h"
 
+#include <DirectXColors.h>
+
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -30,10 +32,14 @@ Renderer::Renderer(Window& inWindow)
 		LOG("Failed to initialise shader pipeline.");
 		return;
 	}
+
+	InitGraphics();
 }
 
 void Renderer::Clean()
 {
+	if (vBuffer) vBuffer->Release();
+
 	if (pVS) pVS->Release();
 	if (pPS) pPS->Release();
 	if (pIL) pIL->Release();
@@ -50,6 +56,16 @@ void Renderer::RenderFrame()
 	FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	devcon->ClearRenderTargetView(backbuffer, bg);
 
+	// Select which vertex buffer to use
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	devcon->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
+
+	// Select which primative we are using
+	devcon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	devcon->Draw(3, 0);
+
 	// Alternatively, include <DirectXColors.h> and do
 	//devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	// You can press F12 on the Colors or DarkSlateGray to see a list of all colours
@@ -65,8 +81,8 @@ long Renderer::InitD3D()
 	DXGI_SWAP_CHAIN_DESC scd = {}; // sets everything to 0 to remove garb vals
 	scd.BufferCount = 1; // One back buffer
 	scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // 32-bit color
-	scd.BufferDesc.Width = window.GetHeight(); // set the back buffer width
-	scd.BufferDesc.Height = window.GetWidth(); // set the back buffer height
+	scd.BufferDesc.Width = window.GetWidth(); // set the back buffer width
+	scd.BufferDesc.Height = window.GetHeight(); // set the back buffer height
 	scd.BufferDesc.RefreshRate.Numerator = 60; //60 FPS
 	scd.BufferDesc.RefreshRate.Denominator = 1; // 60/1 = 60 FPS
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // Intended swapchain use
@@ -182,4 +198,35 @@ long Renderer::InitPipeline()
 	devcon->IASetInputLayout(pIL);
 
 	return S_OK;
+}
+
+void Renderer::InitGraphics()
+{
+	Vertex vertices[] = {
+		{XMFLOAT3{-0.5f, -0.5f, 0.0f }, XMFLOAT4{Colors::Red}},
+		{XMFLOAT3{ 0.0f,  0.5f, 0.0f }, XMFLOAT4{Colors::Lime}},
+		{XMFLOAT3{ 0.5f, -0.5f, 0.0f }, XMFLOAT4{Colors::Blue}},
+	};
+
+	// Create the vertex buffer
+	D3D11_BUFFER_DESC bd = { 0 };
+	bd.Usage = D3D11_USAGE_DYNAMIC; // Dynamic allows CPU-write and GPU-read
+	bd.ByteWidth = sizeof(Vertex) * 3; // Size of buffer - sizeof vertex * num of vertices
+	// bd.ByteWidth = sizeof(vertices); // Alternatively can also be this for simplicty but only on local scope
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Use as vertex buffer
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // Create the buffer
+	dev->CreateBuffer(&bd, NULL, &vBuffer); // Create the buffer
+
+	if (vBuffer == 0) {
+		return;
+	}
+
+	// Copy the vertices into the buffer
+	D3D11_MAPPED_SUBRESOURCE ms;
+	devcon->Map(vBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms); // Map the buffer
+
+	memcpy(ms.pData, vertices, sizeof(vertices)); // Copy the data into the buffer
+
+	devcon->Unmap(vBuffer, NULL);
+
 }
