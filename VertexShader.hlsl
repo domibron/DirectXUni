@@ -1,6 +1,6 @@
 struct VIn
 {
-    float3 position : POSITION;
+    float4 position : POSITION;
     float4 color : COLOR;
 };
 
@@ -13,7 +13,7 @@ struct VOut
 VOut main(VIn input)
 {
     VOut output;
-    output.position = float4(input.position, 1);
+    output.position = input.position;
     output.color = input.color;
     
     return output;
