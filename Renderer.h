@@ -34,7 +34,8 @@ private:
 	ID3D11PixelShader* pPS = nullptr; // Pixel Shader
 	ID3D11InputLayout* pIL = nullptr; // Input layout
 
-	ID3D11Buffer* vBuffer = nullptr;
+	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
+	ID3D11Buffer* iBuffer = nullptr; // Index buffer
 
 	long InitD3D();
 	long InitPipeline();
