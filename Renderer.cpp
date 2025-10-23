@@ -8,7 +8,8 @@
 using namespace DirectX;
 
 
-#include <d3dcompiler.h>
+//#include <d3dcompiler.h> // this was replaced with shader loading.
+#include "ShaderLoading.h"
 #include "Debug.h"
 #include "Window.h"
 
@@ -38,6 +39,7 @@ Renderer::Renderer(Window& inWindow)
 
 void Renderer::Clean()
 {
+	if (iBuffer) iBuffer->Release();
 	if (vBuffer) vBuffer->Release();
 
 	if (pVS) pVS->Release();
@@ -149,51 +151,15 @@ long Renderer::InitD3D()
 
 long Renderer::InitPipeline()
 {
-	// Load and compile the vertex and pixel shaders
-	HRESULT result;
-	ID3DBlob* VS, *PS, *pErrorBlob;
-
-	result = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_4_0", 0, 0, &VS, &pErrorBlob);
-
-	if (FAILED(result)) {
-		LOG(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
-		pErrorBlob->Release();
-		return result;
-	}
-
-	result = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_4_0", 0, 0, &PS, &pErrorBlob);
-
-	if (FAILED(result)) {
-		LOG(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
-		pErrorBlob->Release();
-		return result;
-	}
-
-	// Encapsulate both shaders into shader objects
-	dev->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &pVS);
-	dev->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &pPS);
+	ShaderLoading::LoadVertexShader("Compiled Shaders/VertexShader.cso", dev, &pVS, &pIL);
+	ShaderLoading::LoadPixelShader("Compiled Shaders/PixelShader.cso", dev, &pPS);
 
 	// TODO: add error handling to the two functions above.
-
 	// Set shader objects as active shaders in the pipeline
 	devcon->VSSetShader(pVS, 0, 0);
 	devcon->PSSetShader(pPS, 0, 0);
 
-	//Create the input layout discription
-	D3D11_INPUT_ELEMENT_DESC ied[] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
 
-	result = dev->CreateInputLayout(ied, ARRAYSIZE(ied), VS->GetBufferPointer(), VS->GetBufferSize(), &pIL);
-	VS->Release();
-	PS->Release();
-
-	if (FAILED(result)){
-		LOG("Failed to create input layout");
-		return result;
-	}
 
 	// should be in render loop
 	devcon->IASetInputLayout(pIL);
@@ -257,7 +223,6 @@ void Renderer::InitGraphics()
 	D3D11_BUFFER_DESC bd = { 0 };
 	bd.Usage = D3D11_USAGE_DYNAMIC; // Dynamic allows CPU-write and GPU-read
 	bd.ByteWidth = sizeof(vertices); // Size of buffer
-	// bd.ByteWidth = sizeof(vertices); // Alternatively can also be this for simplicty but only on local scope
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Use as vertex buffer
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // Create the buffer
 	if (FAILED(dev->CreateBuffer(&bd, NULL, &vBuffer))) // Create the buffer
