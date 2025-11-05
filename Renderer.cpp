@@ -15,6 +15,10 @@ using namespace DirectX;
 
 #include <DirectXColors.h>
 
+#include "ModelLoader.h"
+
+#include "Mesh.h"
+
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -75,15 +79,8 @@ void Renderer::RenderFrame()
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	// Select which vertex buffer to use
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	devcon->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
-	devcon->IASetIndexBuffer(iBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Select which primative we are using
-	devcon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	// TODO: Fix cringe.
 	CBuffer_PerObject cBufferData;
 	cBufferData.WVP = XMMatrixIdentity();
 	XMMATRIX world = transform1.GetWorldMatrix();
@@ -93,11 +90,14 @@ void Renderer::RenderFrame()
 	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 
-	devcon->DrawIndexed(36, 0, 0); // 36 is the number of indicies.s
+	//devcon->DrawIndexed(36, 0, 0); // 36 is the number of indicies.s
+	sphereMesh->Render();
 	
 	cBufferData.WVP = transform2.GetWorldMatrix() * view * projection; // MUST FOLLOW WVP World, View, Projection.
 	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
-	devcon->DrawIndexed(36, 0, 0);
+	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
+	//devcon->DrawIndexed(36, 0, 0);
+	cubeMesh->Render();
 
 	// Alternatively, include <DirectXColors.h> and do
 	//devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
@@ -205,71 +205,6 @@ long Renderer::InitPipeline()
 
 void Renderer::InitGraphics()
 {
-	// for when camera can be moved.
-	Vertex vertices[] = {
-		{XMFLOAT3{-0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
-		{XMFLOAT3{-0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
-		{XMFLOAT3{ 0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
-		{XMFLOAT3{ 0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
-
-		{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
-		{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
-		{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
-		{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
-	};
-
-	//Vertex vertices[] = {
-	//	{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
-	//	{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
-	//	{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
-	//	{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
-
-	//	{XMFLOAT3{-0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
-	//	{XMFLOAT3{-0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
-	//	{XMFLOAT3{ 0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
-	//	{XMFLOAT3{ 0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
-	//};
-
-	
-
-	
-
-	// Create an index buffer
-	unsigned int indices[] = { /*front*/ 0,1,2,2,3,0, /*back*/ 7,6,5,5,4,7, /*left*/ 4,5,1,1,0,4,
-		/*right*/ 3,2,6,6,7,3, /*top*/ 1,5,6,6,2,1, /*bottom*/ 4,0,3,3,7,4 };
-
-	// Fill in a buffer description
-	D3D11_BUFFER_DESC bufferDesc = { 0 };
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(indices);
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-	// Defube the resource data.
-	D3D11_SUBRESOURCE_DATA initData = { 0 };
-	initData.pSysMem = indices;
-
-	// Create the buffer with the decvice
-	if (FAILED(dev->CreateBuffer(&bufferDesc, &initData, &iBuffer))) {
-		LOG("Failed to create index buffer");
-		return;
-	}
-
-
-	// Create the vertex buffer
-	D3D11_BUFFER_DESC bd = { 0 };
-	bd.Usage = D3D11_USAGE_DYNAMIC; // Dynamic allows CPU-write and GPU-read
-	bd.ByteWidth = sizeof(vertices); // Size of buffer
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Use as vertex buffer
-	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // Create the buffer
-	if (FAILED(dev->CreateBuffer(&bd, NULL, &vBuffer))) // Create the buffer
-	{
-		LOG("Failed to create vertex buffer.");
-		return;
-	}
-
-	if (vBuffer == 0) {
-		return;
-	}
 
 	D3D11_BUFFER_DESC cbd = { 0 };
 	cbd.Usage = D3D11_USAGE_DEFAULT;
@@ -280,15 +215,9 @@ void Renderer::InitGraphics()
 		return;
 	}
 
+	cubeMesh = new Mesh(*this, "cube.obj");
 
-	// Copy the vertices into the buffer
-	D3D11_MAPPED_SUBRESOURCE ms;
-	devcon->Map(vBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms); // Map the buffer
-
-	memcpy(ms.pData, vertices, sizeof(vertices)); // Copy the data into the buffer
-
-	devcon->Unmap(vBuffer, NULL);
-
+	sphereMesh = new Mesh(*this, "Sphere.obj");
 }
 
 long Renderer::InitDepthBuffer()

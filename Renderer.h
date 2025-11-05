@@ -3,6 +3,7 @@
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
 
+
 struct IDXGISwapChain;
 struct ID3D11Device;
 struct ID3D11DeviceContext;
@@ -17,7 +18,7 @@ struct ID3D11DepthStencilView;
 
 class Window;
 
-
+class Mesh;
 
 class Renderer
 {
@@ -26,10 +27,15 @@ public:
 	void Clean();
 	void RenderFrame();
 
+	ID3D11Device* GetDevice() { return dev; }
+	ID3D11DeviceContext* GetDeviceCon() { return devcon; }
+
 	// placeholder
 	Transform transform1;
 	Transform transform2;
 	Camera camera;
+	Mesh* cubeMesh;
+	Mesh* sphereMesh;
 
 private:
 	Window& window;
