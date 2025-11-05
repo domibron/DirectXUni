@@ -21,6 +21,13 @@ struct Vertex
 	XMFLOAT4 Color;
 };
 
+struct CBuffer_PerObject {
+	XMFLOAT3 pos; // 12 bytes (4 bytes * 3 floats)
+	float padding; // 4 bytes - unused but important to align the data correctly in memory. (cpu only needs to do one read cycle)
+	// Data must follow 16 bytes, so 16, 32, 48, 64.
+	// Data cannot cross the 16 byte bounds. You cannot have a float3 followed by a float2 or float 3.
+};
+
 Renderer::Renderer(Window& inWindow)
 	: window(inWindow)
 {
@@ -39,6 +46,7 @@ Renderer::Renderer(Window& inWindow)
 
 void Renderer::Clean()
 {
+	if (cBuffer_PerObject) cBuffer_PerObject->Release();
 	if (iBuffer) iBuffer->Release();
 	if (vBuffer) vBuffer->Release();
 
@@ -66,6 +74,11 @@ void Renderer::RenderFrame()
 
 	// Select which primative we are using
 	devcon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	CBuffer_PerObject cBufferData;
+	cBufferData.pos = XMFLOAT3(0.5f, 0.0f, 1.0f);
+	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
+	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 
 	devcon->DrawIndexed(36, 0, 0); // 36 is the number of indicies.s
 
@@ -170,29 +183,29 @@ long Renderer::InitPipeline()
 void Renderer::InitGraphics()
 {
 	// for when camera can be moved.
-	//Vertex vertices[] = {
-	//	{XMFLOAT3{-0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
-	//	{XMFLOAT3{-0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
-	//	{XMFLOAT3{ 0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
-	//	{XMFLOAT3{ 0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
-
-	//	{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
-	//	{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
-	//	{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
-	//	{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
-	//};
-
 	Vertex vertices[] = {
-		{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
-		{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
-		{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
-		{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
+		{XMFLOAT3{-0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
+		{XMFLOAT3{-0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
+		{XMFLOAT3{ 0.5f,  0.5f, -0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
+		{XMFLOAT3{ 0.5f, -0.5f, -0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
 
-		{XMFLOAT3{-0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
-		{XMFLOAT3{-0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
-		{XMFLOAT3{ 0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
-		{XMFLOAT3{ 0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
+		{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
+		{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
+		{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
+		{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
 	};
+
+	//Vertex vertices[] = {
+	//	{XMFLOAT3{-0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 0.0f, 0.0f, 1.0f}}, // Front BL
+	//	{XMFLOAT3{-0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 1.0f, 0.0f, 1.0f}}, // Front TL
+	//	{XMFLOAT3{ 0.5f,  0.5f,  0.5f }, XMFLOAT4{0.0f, 0.0f, 1.0f, 1.0f}}, // Front TR
+	//	{XMFLOAT3{ 0.5f, -0.5f,  0.5f }, XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}}, // Front BR
+
+	//	{XMFLOAT3{-0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 1.0f, 1.0f, 1.0f}}, // Back  BL
+	//	{XMFLOAT3{-0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 0.0f, 1.0f, 1.0f}}, // Back  TL
+	//	{XMFLOAT3{ 0.5f,  0.5f,  1.5f }, XMFLOAT4{1.0f, 1.0f, 0.0f, 1.0f}}, // Back  TR
+	//	{XMFLOAT3{ 0.5f, -0.5f,  1.5f }, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}}, // Back  BR
+	//};
 
 	
 
@@ -232,6 +245,15 @@ void Renderer::InitGraphics()
 	}
 
 	if (vBuffer == 0) {
+		return;
+	}
+
+	D3D11_BUFFER_DESC cbd = { 0 };
+	cbd.Usage = D3D11_USAGE_DEFAULT;
+	cbd.ByteWidth = sizeof(CBuffer_PerObject);
+	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_PerObject))) {
+		LOG("Oops, failed to create CBuffer.");
 		return;
 	}
 

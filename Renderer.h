@@ -36,6 +36,7 @@ private:
 
 	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
 	ID3D11Buffer* iBuffer = nullptr; // Index buffer
+	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
 
 	long InitD3D();
 	long InitPipeline();
