@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "Transform.h" // You have directX using in this class FYI
 
 struct IDXGISwapChain;
 struct ID3D11Device;
@@ -22,6 +22,9 @@ public:
 	Renderer(Window& inWindow);
 	void Clean();
 	void RenderFrame();
+
+	// placeholder
+	Transform transform;
 
 private:
 	Window& window;

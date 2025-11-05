@@ -38,6 +38,14 @@ int WINAPI WinMain(
 		}
 		else {
 			// Game code here.
+			static float fakeTime = 0;
+			fakeTime += 0.0001f;
+			Transform& t = renderer.transform; // chache reference.
+			t.position = XMVectorSetZ(t.position, 0.75f);
+			t.position = XMVectorSetX(t.position, sin(fakeTime));
+			t.Rotate({ 0.0001f, 0.0001f, 0 });
+			//renderer.transform.position = XMVectorSetZ(renderer.transform.position, 0.5f);
+
 			renderer.RenderFrame();
 		}
 	}

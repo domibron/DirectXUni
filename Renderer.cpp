@@ -22,10 +22,16 @@ struct Vertex
 };
 
 struct CBuffer_PerObject {
-	XMFLOAT3 pos; // 12 bytes (4 bytes * 3 floats)
-	float padding; // 4 bytes - unused but important to align the data correctly in memory. (cpu only needs to do one read cycle)
-	// Data must follow 16 bytes, so 16, 32, 48, 64.
-	// Data cannot cross the 16 byte bounds. You cannot have a float3 followed by a float2 or float 3.
+	XMMATRIX world; // 64 byte world matrix.
+	// The 64 comes from each row being 16 bytes
+	// and 4 rows in total. 4 * 16 = 64 bytes
+	// Each '4' us a 4 byte float value
+	// 4,4,4,4
+	// 4,4,4,4
+	// 4,4,4,4
+	// 4,4,4,4
+	// XMMATRIX is a strictly aligned type for SIMD hardware
+	// Single Instruction, Multiple Data
 };
 
 Renderer::Renderer(Window& inWindow)
@@ -76,7 +82,7 @@ void Renderer::RenderFrame()
 	devcon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	CBuffer_PerObject cBufferData;
-	cBufferData.pos = XMFLOAT3(0.5f, 0.0f, 1.0f);
+	cBufferData.world = transform.GetWorldMatrix();
 	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 
