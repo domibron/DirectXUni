@@ -1,6 +1,11 @@
+#include "Debug.h"
+#include "Camera.h"
+
 #include "Window.h"
 
 const wchar_t* windowName = L"DirectX Hello World!"; // Wide char array
+
+Camera* Window::cam = nullptr;
 
 LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -28,10 +33,30 @@ LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case 'W':
-
+			cam->transform.Translate(cam->transform.GetForward() * 0.1f);
 			// W key was pressed
 			break;
-
+		case 'S':
+			cam->transform.Translate(cam->transform.GetForward() * -0.1f);
+			break;
+		case 'A':
+			cam->transform.Translate(cam->transform.GetRight() * -0.1f);
+			break;
+		case 'D':
+			cam->transform.Translate(cam->transform.GetRight() * 0.1f);
+			break;
+		case VK_LEFT:
+			cam->transform.Rotate({ 0, -XM_PI / 8 });
+			break;
+		case VK_RIGHT:
+			cam->transform.Rotate({ 0, XM_PI / 8 });
+			break;
+		case VK_UP:
+			cam->transform.Rotate({ XM_PI / 8.0f, 0 });
+			break;
+		case VK_DOWN:
+			cam->transform.Rotate({ -XM_PI / 8, 0 });
+			break;
 		}
 
 
@@ -41,6 +66,11 @@ LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
+}
+
+void Window::SetCamera(Camera& camera)
+{
+	cam = &camera;
 }
 
 Window::Window(int width, int height, HINSTANCE hInstance, int nCmdShow)

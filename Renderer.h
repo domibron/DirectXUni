@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Transform.h" // You have directX using in this class FYI
+#include "Camera.h"
 
 struct IDXGISwapChain;
 struct ID3D11Device;
@@ -11,6 +12,8 @@ struct ID3D11VertexShader;
 struct ID3D11PixelShader;
 struct ID3D11InputLayout;
 struct ID3D11Buffer;
+
+struct ID3D11DepthStencilView;
 
 class Window;
 
@@ -24,7 +27,9 @@ public:
 	void RenderFrame();
 
 	// placeholder
-	Transform transform;
+	Transform transform1;
+	Transform transform2;
+	Camera camera;
 
 private:
 	Window& window;
@@ -41,8 +46,11 @@ private:
 	ID3D11Buffer* iBuffer = nullptr; // Index buffer
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
 
+	ID3D11DepthStencilView* depthBuffer = NULL;
+
 	long InitD3D();
 	long InitPipeline();
 	void InitGraphics();
+	long InitDepthBuffer();
 };
 

@@ -12,13 +12,13 @@ struct VOut
 
 cbuffer PerObjectCB
 {
-    matrix world;
+    matrix WVP;
 };
 
 VOut main(VIn input)
 {
     VOut output;
-    output.position = mul(world, float4(input.position, 1));
+    output.position = mul(WVP, float4(input.position, 1));
     output.color = input.color;
     
     return output;

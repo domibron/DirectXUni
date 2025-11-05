@@ -18,6 +18,11 @@ int WINAPI WinMain(
 	Window window{ 800, 600, hInstance, nCmdShow };
 	Renderer renderer{ window };
 
+	window.SetCamera(renderer.camera);
+
+	renderer.camera.transform.position = XMVectorSetZ(renderer.camera.transform.position, -1);
+	renderer.transform1.position = XMVectorSetZ(renderer.transform1.position, 1);
+	renderer.transform2.position = XMVectorSetZ(renderer.transform1.position, 1.5f);
 
 
 	// Used to hold windows even messages
@@ -38,12 +43,12 @@ int WINAPI WinMain(
 		}
 		else {
 			// Game code here.
-			static float fakeTime = 0;
-			fakeTime += 0.0001f;
-			Transform& t = renderer.transform; // chache reference.
-			t.position = XMVectorSetZ(t.position, 0.75f);
-			t.position = XMVectorSetX(t.position, sin(fakeTime));
-			t.Rotate({ 0.0001f, 0.0001f, 0 });
+			//static float fakeTime = 0;
+			//fakeTime += 0.0001f;
+			//Transform& t = renderer.transform; // chache reference.
+			//t.position = XMVectorSetZ(t.position, 0.75f);
+			//t.position = XMVectorSetX(t.position, sin(fakeTime));
+			//t.Rotate({ 0.0001f, 0.0001f, 0 });
 			//renderer.transform.position = XMVectorSetZ(renderer.transform.position, 0.5f);
 
 			renderer.RenderFrame();

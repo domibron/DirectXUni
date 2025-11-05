@@ -22,7 +22,7 @@ struct Vertex
 };
 
 struct CBuffer_PerObject {
-	XMMATRIX world; // 64 byte world matrix.
+	XMMATRIX WVP; // 64 byte world matrix.
 	// The 64 comes from each row being 16 bytes
 	// and 4 rows in total. 4 * 16 = 64 bytes
 	// Each '4' us a 4 byte float value
@@ -52,6 +52,8 @@ Renderer::Renderer(Window& inWindow)
 
 void Renderer::Clean()
 {
+	if (depthBuffer) depthBuffer->Release();
+
 	if (cBuffer_PerObject) cBuffer_PerObject->Release();
 	if (iBuffer) iBuffer->Release();
 	if (vBuffer) vBuffer->Release();
@@ -69,8 +71,9 @@ void Renderer::Clean()
 void Renderer::RenderFrame()
 {
 	// C;ear back buffer with desired color
-	FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-	devcon->ClearRenderTargetView(backbuffer, bg);
+	//FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
+	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Select which vertex buffer to use
 	UINT stride = sizeof(Vertex);
@@ -82,11 +85,19 @@ void Renderer::RenderFrame()
 	devcon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	CBuffer_PerObject cBufferData;
-	cBufferData.world = transform.GetWorldMatrix();
+	cBufferData.WVP = XMMatrixIdentity();
+	XMMATRIX world = transform1.GetWorldMatrix();
+	XMMATRIX view = camera.GetViewMatrix();
+	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+	cBufferData.WVP = world * view * projection; // MUST FOLLOW WVP World, View, Projection.
 	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 
 	devcon->DrawIndexed(36, 0, 0); // 36 is the number of indicies.s
+	
+	cBufferData.WVP = transform2.GetWorldMatrix() * view * projection; // MUST FOLLOW WVP World, View, Projection.
+	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
+	devcon->DrawIndexed(36, 0, 0);
 
 	// Alternatively, include <DirectXColors.h> and do
 	//devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
@@ -152,8 +163,14 @@ long Renderer::InitD3D()
 		return hr;
 	}
 
+	hr = InitDepthBuffer();
+	if (FAILED(hr)) {
+		LOG("Failed to create depth buffer.");
+		return hr;
+	}
+
 	// Set the back buffer as the current render target
-	devcon->OMSetRenderTargets(1, &backbuffer, NULL);
+	devcon->OMSetRenderTargets(1, &backbuffer, depthBuffer);
 
 	// Define and set the viewport
 	D3D11_VIEWPORT viewport = {};
@@ -272,4 +289,44 @@ void Renderer::InitGraphics()
 
 	devcon->Unmap(vBuffer, NULL);
 
+}
+
+long Renderer::InitDepthBuffer()
+{
+	HRESULT hr;
+
+	DXGI_SWAP_CHAIN_DESC scd = {};
+	swapchain->GetDesc(&scd);
+
+	// Z-Buffer texture description
+	D3D11_TEXTURE2D_DESC tex2dDesc = { 0 };
+	tex2dDesc.Width = window.GetWidth();
+	tex2dDesc.Height = window.GetHeight();
+	tex2dDesc.ArraySize = 1;
+	tex2dDesc.MipLevels = 1;
+	tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	tex2dDesc.SampleDesc.Count = scd.SampleDesc.Count;
+	tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	// Z-Buffer texture
+	ID3D11Texture2D* zBufferTexture;
+	hr = dev->CreateTexture2D(&tex2dDesc, NULL, &zBufferTexture);
+	if (FAILED(hr)) {
+		OutputDebugString(L"Failed to create Z-Buffer Texture!");
+		return E_FAIL;
+	}
+
+	// Create the depth buffer view
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	ZeroMemory(&dsvDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	dsvDesc.Format = tex2dDesc.Format;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	hr = dev->CreateDepthStencilView(zBufferTexture, &dsvDesc, &depthBuffer);
+	if (FAILED(hr)) {
+		OutputDebugString(L"Failed to create depth stencil view!");
+		return E_FAIL;
+	}
+	zBufferTexture->Release();
+	return S_OK;
 }

@@ -14,5 +14,9 @@ public:
 	XMMATRIX GetWorldMatrix();
 	void Translate(XMVECTOR translation);
 	void Rotate(XMVECTOR inRotation);
+
+	XMVECTOR GetForward();
+	XMVECTOR GetRight();
+	XMVECTOR GetUp();
 };
 
