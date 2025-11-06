@@ -37,7 +37,7 @@ Mesh::Mesh(Renderer& renderer, std::string objPath)
 	// Fill in a buffer description
 	D3D11_BUFFER_DESC bufferDesc = { 0 };
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = ml.GetIndexBufferSize();
+	bufferDesc.ByteWidth = (unsigned int)ml.GetIndexBufferSize();
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
 	// Defube the resource data.

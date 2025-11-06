@@ -22,17 +22,11 @@ int WINAPI WinMain(
 
 	window.SetCamera(renderer.camera);
 
+	renderer.camera.transform.position = XMVectorSetZ(renderer.camera.transform.position, -1);
+
 	Mesh mesh_cube{ renderer, "cube.obj" };
 	Mesh mesh_sphere{ renderer, "Sphere.obj" };
 
-	/*
-	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
-	Update function which can be overridden inside child classes. In other words, you could make a “SpinningGameObject” child
-	class which overrides the Update function to rotate itself. You then just call the Update function on all GameObjects every
-	frame.
-	*/
-
-	renderer.camera.transform.position = XMVectorSetZ(renderer.camera.transform.position, -1);
 	GameObject go1{ "Cube", &mesh_cube };
 	GameObject go2{ "Sphere", &mesh_sphere };
 

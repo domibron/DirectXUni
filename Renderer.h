@@ -2,7 +2,7 @@
 
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
-
+#include <vector>
 
 struct IDXGISwapChain;
 struct ID3D11Device;
@@ -18,7 +18,7 @@ struct ID3D11DepthStencilView;
 
 class Window;
 
-class Mesh;
+class GameObject;
 
 class Renderer
 {
@@ -30,12 +30,12 @@ public:
 	ID3D11Device* GetDevice() { return dev; }
 	ID3D11DeviceContext* GetDeviceCon() { return devcon; }
 
-	// placeholder
-	Transform transform1;
-	Transform transform2;
+
 	Camera camera;
-	Mesh* cubeMesh;
-	Mesh* sphereMesh;
+	std::vector<GameObject*> gameObjects;
+
+	void RegisterGameObject(GameObject* e);
+	void RemoveGameObject(GameObject* e);
 
 private:
 	Window& window;

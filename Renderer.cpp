@@ -19,6 +19,8 @@ using namespace DirectX;
 
 #include "Mesh.h"
 
+#include "GameObject.h"
+
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -80,32 +82,42 @@ void Renderer::RenderFrame()
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
-	// TODO: Fix cringe.
 	CBuffer_PerObject cBufferData;
 	cBufferData.WVP = XMMatrixIdentity();
-	XMMATRIX world = transform1.GetWorldMatrix();
 	XMMATRIX view = camera.GetViewMatrix();
 	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
-	cBufferData.WVP = world * view * projection; // MUST FOLLOW WVP World, View, Projection.
-	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
-	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 
-	//devcon->DrawIndexed(36, 0, 0); // 36 is the number of indicies.s
-	sphereMesh->Render();
+	for (auto go : gameObjects) {
 	
-	cBufferData.WVP = transform2.GetWorldMatrix() * view * projection; // MUST FOLLOW WVP World, View, Projection.
-	devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
-	devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
-	//devcon->DrawIndexed(36, 0, 0);
-	cubeMesh->Render();
+		XMMATRIX world = go->transform.GetWorldMatrix();
+		cBufferData.WVP = world * view * projection;
+		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
+		devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
+		
+		go->mesh->Render();
+	}
 
-	// Alternatively, include <DirectXColors.h> and do
-	//devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
-	// You can press F12 on the Colors or DarkSlateGray to see a list of all colours
-	// Adding a using namespace DirectX will make it less cumbersome to use this
-
+	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and
+	// projection matrices outside of the for loop.
+	
 	// Flip the back and front buffers around. Display on screen
 	swapchain->Present(0, 0);
+}
+
+
+void Renderer::RegisterGameObject(GameObject* e)
+{
+	gameObjects.push_back(e);
+	LOG("Registered " + e->GetName() + ".");
+}
+
+void Renderer::RemoveGameObject(GameObject* e)
+{
+	auto foundEntity = std::find(gameObjects.begin(), gameObjects.end(), e);
+	if (foundEntity != gameObjects.end()) {
+		gameObjects.erase(foundEntity);
+	}
+	// Note: will affect index-based iterating // I presume this means this edits memory at runtime and is not thread safe.
 }
 
 long Renderer::InitD3D()
@@ -215,9 +227,6 @@ void Renderer::InitGraphics()
 		return;
 	}
 
-	cubeMesh = new Mesh(*this, "cube.obj");
-
-	sphereMesh = new Mesh(*this, "Sphere.obj");
 }
 
 long Renderer::InitDepthBuffer()
