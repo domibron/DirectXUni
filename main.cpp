@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "Mesh.h"
 #include "GameObject.h"
+#include <Mouse.h>
 
 void OpenConsole();
 
@@ -15,6 +16,8 @@ int WINAPI WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow) 
 {
+	Mouse m;
+
 	OpenConsole();
 
 	Window window{ 800, 600, hInstance, nCmdShow };
