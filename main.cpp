@@ -16,7 +16,7 @@ int WINAPI WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow) 
 {
-	Mouse m;
+	DirectX::Mouse m;
 
 	OpenConsole();
 
@@ -25,8 +25,8 @@ int WINAPI WinMain(
 
 	window.SetCamera(renderer.camera);
 
-	Mesh mesh_cube{ renderer, "cube.obj" };
-	Mesh mesh_sphere{ renderer, "Sphere.obj" };
+	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
+	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -35,15 +35,15 @@ int WINAPI WinMain(
 	frame.
 	*/
 
-	renderer.camera.transform.position = XMVectorSetZ(renderer.camera.transform.position, -1);
+	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
 	GameObject go1{ "Cube", &mesh_cube };
 	GameObject go2{ "Sphere", &mesh_sphere };
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
 
-	go1.transform.position = XMVectorSet(-2, 0, 0, 1);
-	go2.transform.position = XMVectorSet(2, 0, 0, 1);
+	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
+	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
 
 	// Used to hold windows even messages
 	MSG msg;

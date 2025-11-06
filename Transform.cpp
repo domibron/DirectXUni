@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+using namespace DirectX;
+
 XMMATRIX Transform::GetWorldMatrix()
 {
 	// Must follow SRT scale, rotation, transformation when combining matrices.

@@ -2,13 +2,18 @@
 #include "Camera.h"
 
 #include "Window.h"
+#include <DirectXMath.h>
 
 const wchar_t* windowName = L"DirectX Hello World!"; // Wide char array
 
 Camera* Window::cam = nullptr;
 
+
+
 LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	using namespace DirectX;
+
 	switch (uMsg) {
 		// This message is sent when the user closes the window
 		// Depending on your handling of application windows, you may not need this.
@@ -46,16 +51,16 @@ LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			cam->transform.Translate(cam->transform.GetRight() * 0.1f);
 			break;
 		case VK_LEFT:
-			cam->transform.Rotate({ 0, -XM_PI / 8 });
+			cam->transform.Rotate({ 0, -DirectX::XM_PI / 8 });
 			break;
 		case VK_RIGHT:
-			cam->transform.Rotate({ 0, XM_PI / 8 });
+			cam->transform.Rotate({ 0, DirectX::XM_PI / 8 });
 			break;
 		case VK_UP:
-			cam->transform.Rotate({ XM_PI / 8.0f, 0 });
+			cam->transform.Rotate({ DirectX::XM_PI / 8.0f, 0 });
 			break;
 		case VK_DOWN:
-			cam->transform.Rotate({ -XM_PI / 8, 0 });
+			cam->transform.Rotate({ -DirectX::XM_PI / 8, 0 });
 			break;
 		}
 
