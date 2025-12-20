@@ -8,6 +8,8 @@
 #include "GameObject.h"
 #include <Mouse.h>
 
+using namespace DirectX; // ? fixes the XMVector * float.
+
 void OpenConsole();
 
 int WINAPI WinMain(
@@ -16,7 +18,6 @@ int WINAPI WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow) 
 {
-	DirectX::Mouse m;
 
 	OpenConsole();
 
@@ -73,8 +74,25 @@ int WINAPI WinMain(
 			auto kbState = DirectX::Keyboard::Get().GetState();
 
 			if (kbState.S) {
-				renderer.camera.transform.Translate({ 0,0, -0.001 });
+				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * -0.001f);
 			}
+
+			if (kbState.W) {
+				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * 0.001f);
+			}
+
+			if (kbState.A) {
+				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * -0.001f);
+			}
+
+			if (kbState.D) {
+				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * 0.001f);
+			}
+
+			auto msState = DirectX::Mouse::Get().GetState();
+			renderer.camera.transform.Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
+			if (msState.leftButton)
+				renderer.camera.transform.position = { 0, 0, -5 };
 
 			renderer.RenderFrame();
 		}
@@ -85,6 +103,7 @@ int WINAPI WinMain(
 	return 0;
 
 }
+
 
 
 void OpenConsole()

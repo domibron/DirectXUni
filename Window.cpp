@@ -128,13 +128,13 @@ Window::Window(int width, int height, HINSTANCE hInstance, int nCmdShow)
 
 	if (handle != NULL) {
 		//Display the window to the screen
-		ShowWindow(handle, nCmdShow); 
-		//mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
-		//mouse.SetVisible(false); // use mouse absolute to free the mouse.
+		ShowWindow(handle, nCmdShow);		
 	}
 	else {
 		LOG("Failed to create window.");
 	}
-
+	// This can fail if the handle is null.
 	mouse.SetWindow(handle);
+	mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+	//mouse.SetVisible(false); // use mouse absolute to free the mouse.
 }
