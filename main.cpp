@@ -23,7 +23,6 @@ int WINAPI WinMain(
 	Window window{ 800, 600, hInstance, nCmdShow };
 	Renderer renderer{ window };
 
-	window.SetCamera(renderer.camera);
 
 	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
@@ -45,7 +44,7 @@ int WINAPI WinMain(
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
 	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
 
-	// Used to hold windows even messages
+	// Used to hold windows event messages
 	MSG msg;
 
 	// Enter the main loop
@@ -70,6 +69,12 @@ int WINAPI WinMain(
 			//t.position = XMVectorSetX(t.position, sin(fakeTime));
 			//t.Rotate({ 0.0001f, 0.0001f, 0 });
 			//renderer.transform.position = XMVectorSetZ(renderer.transform.position, 0.5f);
+
+			auto kbState = DirectX::Keyboard::Get().GetState();
+
+			if (kbState.S) {
+				renderer.camera.transform.Translate({ 0,0, -0.001 });
+			}
 
 			renderer.RenderFrame();
 		}

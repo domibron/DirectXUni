@@ -1,12 +1,10 @@
 #include "Debug.h"
-#include "Camera.h"
 
 #include "Window.h"
 #include <DirectXMath.h>
 
 const wchar_t* windowName = L"DirectX Hello World!"; // Wide char array
 
-Camera* Window::cam = nullptr;
 
 
 
@@ -27,42 +25,51 @@ LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 
-	// Key being pressed down events
+	//keyboard inputs.
+	case WM_ACTIVATE:
+	case WM_ACTIVATEAPP:
+	case WM_INPUT:
+		Keyboard::ProcessMessage(uMsg, wParam, lParam);
+		Mouse::ProcessMessage(uMsg, wParam, lParam);
+		break;
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000) {
+			// This is where you'd implement the classic ALT+ENTER hotkey for fullscreen toggle
+		}
+		Keyboard::ProcessMessage(uMsg, wParam, lParam);
+		break;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
 		case VK_ESCAPE:
-			DestroyWindow(hWnd); // Note! Destroying the window is not the same as closing the app
+			DestroyWindow(hWnd); // Note! Destroying the window is not the same as closing the app.
 			// Destroying the window will post a WM_DESTROY which will lead to
-			// PostQuitMessage(0) being called. (as above)
-			break;
+			// PostQuitMessage(0) being called.
+		} // Intentionally no break
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		Keyboard::ProcessMessage(uMsg, wParam, lParam);
+		break;
 
-		case 'W':
-			cam->transform.Translate(cam->transform.GetForward() * 0.1f);
-			// W key was pressed
-			break;
-		case 'S':
-			cam->transform.Translate(cam->transform.GetForward() * -0.1f);
-			break;
-		case 'A':
-			cam->transform.Translate(cam->transform.GetRight() * -0.1f);
-			break;
-		case 'D':
-			cam->transform.Translate(cam->transform.GetRight() * 0.1f);
-			break;
-		case VK_LEFT:
-			cam->transform.Rotate({ 0, -DirectX::XM_PI / 8 });
-			break;
-		case VK_RIGHT:
-			cam->transform.Rotate({ 0, DirectX::XM_PI / 8 });
-			break;
-		case VK_UP:
-			cam->transform.Rotate({ DirectX::XM_PI / 8.0f, 0 });
-			break;
-		case VK_DOWN:
-			cam->transform.Rotate({ -DirectX::XM_PI / 8, 0 });
-			break;
-		}
+
+	case WM_MOUSEACTIVATE:
+		// This will ignore mouse clicks that regain focus on the window.
+		// Good practice to prevent player "misinputs" when they click into the window.
+		return MA_ACTIVATEANDEAT;
+
+	case WM_MOUSEMOVE:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEWHEEL:
+	case WM_XBUTTONDOWN:
+	case WM_XBUTTONUP:
+	case WM_MOUSEHOVER:
+		Mouse::ProcessMessage(uMsg, wParam, lParam);
+		break;
 
 
 	default:
@@ -73,15 +80,12 @@ LRESULT Window::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void Window::SetCamera(Camera& camera)
-{
-	cam = &camera;
-}
 
 Window::Window(int width, int height, HINSTANCE hInstance, int nCmdShow)
 	: instance(hInstance), width(width), height(height)
 {
 	
+
 	// First we need to register our window classs.
 	// This is how windows stores properties for a window that we want to create.
 
@@ -124,9 +128,13 @@ Window::Window(int width, int height, HINSTANCE hInstance, int nCmdShow)
 
 	if (handle != NULL) {
 		//Display the window to the screen
-		ShowWindow(handle, nCmdShow);
+		ShowWindow(handle, nCmdShow); 
+		//mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+		//mouse.SetVisible(false); // use mouse absolute to free the mouse.
 	}
 	else {
 		LOG("Failed to create window.");
 	}
+
+	mouse.SetWindow(handle);
 }
