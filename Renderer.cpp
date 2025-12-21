@@ -21,7 +21,7 @@ using namespace DirectX;
 
 #include "GameObject.h"
 
-//#include "Texture.h" // I tried putting this in cpp like the tut said but compiler said otherwise.
+#include "Texture.h" // I tried putting this in cpp like the tut said but compiler said otherwise.
 
 struct Vertex
 {

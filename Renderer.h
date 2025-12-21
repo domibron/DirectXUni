@@ -3,7 +3,7 @@
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
 #include <vector>
-#include "Texture.h" // compiler demanded this to be here. I refuse to fight it right now.
+//#include "Texture.h" // compiler demanded this to be here. I refuse to fight it right now.
 
 
 struct IDXGISwapChain;
@@ -21,6 +21,8 @@ struct ID3D11DepthStencilView;
 class Window;
 
 class GameObject;
+
+class Texture;
 
 class Renderer
 {
