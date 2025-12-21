@@ -21,6 +21,8 @@ using namespace DirectX;
 
 #include "GameObject.h"
 
+//#include "Texture.h" // I tried putting this in cpp like the tut said but compiler said otherwise.
+
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -81,6 +83,12 @@ void Renderer::RenderFrame()
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+
+	auto t = texture->GetTexture();
+	devcon->PSSetShaderResources(0, 1, &t);
+	auto s = texture->GetSampler();
+	devcon->PSSetSamplers(0, 1, &s);
+	
 
 	CBuffer_PerObject cBufferData;
 	cBufferData.WVP = XMMatrixIdentity();

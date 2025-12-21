@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "GameObject.h"
 #include <Mouse.h>
+#include "Texture.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -27,6 +28,7 @@ int WINAPI WinMain(
 
 	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
+	Texture tex_box{ renderer, "Assets/Box.bmp" };
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -34,6 +36,8 @@ int WINAPI WinMain(
 	class which overrides the Update function to rotate itself. You then just call the Update function on all GameObjects every
 	frame.
 	*/
+
+	renderer.texture = &tex_box;
 
 	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
 	GameObject go1{ "Cube", &mesh_cube };

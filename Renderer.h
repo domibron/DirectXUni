@@ -3,6 +3,8 @@
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
 #include <vector>
+#include "Texture.h" // compiler demanded this to be here. I refuse to fight it right now.
+
 
 struct IDXGISwapChain;
 struct ID3D11Device;
@@ -33,6 +35,7 @@ public:
 
 	Camera camera;
 	std::vector<GameObject*> gameObjects;
+	Texture* texture;
 
 	void RegisterGameObject(GameObject* e);
 	void RemoveGameObject(GameObject* e);
