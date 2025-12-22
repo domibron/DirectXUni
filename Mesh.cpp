@@ -6,8 +6,8 @@
 #include "ModelLoader.h"
 #include "Debug.h"
 
-Mesh::Mesh(Renderer& renderer, std::string objPath)
-	: dev(renderer.GetDevice()), devcon(renderer.GetDeviceCon())
+Mesh::Mesh(Renderer& renderer, std::string objPath, bool doubleSided)
+	: dev(renderer.GetDevice()), devcon(renderer.GetDeviceCon()), isDoubleSideded(doubleSided)
 {
 	ModelLoader ml{ objPath };
 
@@ -52,6 +52,7 @@ Mesh::Mesh(Renderer& renderer, std::string objPath)
 		return;
 	}
 }
+
 
 void Mesh::Render()
 {

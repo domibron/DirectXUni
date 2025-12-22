@@ -28,7 +28,9 @@ int WINAPI WinMain(
 
 	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
+	Mesh mesh_grass{ renderer, "Assets/grass.obj", true };
 	Texture tex_box{ renderer, "Assets/Box.bmp" };
+	Texture tex_grass{ renderer, "Assets/grass.png", true };
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -37,14 +39,15 @@ int WINAPI WinMain(
 	frame.
 	*/
 
-	renderer.texture = &tex_box;
-
 	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
-	GameObject go1{ "Cube", &mesh_cube };
-	GameObject go2{ "Sphere", &mesh_sphere };
+
+	GameObject go1{ "Cube", &mesh_cube, &tex_box };
+	GameObject go2{ "Sphere", &mesh_sphere, &tex_box };
+	GameObject go_grass{ "Grass", &mesh_grass, &tex_grass };
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
+	renderer.RegisterGameObject(&go_grass);
 
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
 	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);

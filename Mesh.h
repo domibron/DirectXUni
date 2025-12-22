@@ -19,7 +19,8 @@ private:
 	unsigned int indexCount = 0;
 
 public:
-	Mesh(Renderer& renderer, std::string objPath);
+	Mesh(Renderer& renderer, std::string objPath, bool doubleSided = false);
 	void Render();
+	bool isDoubleSideded = false;
 };
 

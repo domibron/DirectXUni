@@ -3,7 +3,6 @@
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
 #include <vector>
-//#include "Texture.h" // compiler demanded this to be here. I refuse to fight it right now.
 
 
 struct IDXGISwapChain;
@@ -17,6 +16,12 @@ struct ID3D11InputLayout;
 struct ID3D11Buffer;
 
 struct ID3D11DepthStencilView;
+
+struct ID3D11RasterizerState;
+
+struct ID3D11BlendState;
+
+struct ID3D11DepthStencilState;
 
 class Window;
 
@@ -37,7 +42,6 @@ public:
 
 	Camera camera;
 	std::vector<GameObject*> gameObjects;
-	Texture* texture;
 
 	void RegisterGameObject(GameObject* e);
 	void RemoveGameObject(GameObject* e);
@@ -58,6 +62,14 @@ private:
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
 
 	ID3D11DepthStencilView* depthBuffer = NULL;
+
+	ID3D11RasterizerState* rasterizerCullBack = nullptr;
+	ID3D11RasterizerState* rasterizerCallNone = nullptr;
+
+	ID3D11BlendState* blendOpaque = nullptr;
+	ID3D11BlendState* blendTransparent = nullptr;
+
+	ID3D11DepthStencilState* depthWriteOff = nullptr;
 
 	long InitD3D();
 	long InitPipeline();

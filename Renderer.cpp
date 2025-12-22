@@ -21,7 +21,7 @@ using namespace DirectX;
 
 #include "GameObject.h"
 
-#include "Texture.h" // I tried putting this in cpp like the tut said but compiler said otherwise.
+#include "Texture.h"
 
 struct Vertex
 {
@@ -84,10 +84,10 @@ void Renderer::RenderFrame()
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
-	auto t = texture->GetTexture();
-	devcon->PSSetShaderResources(0, 1, &t);
-	auto s = texture->GetSampler();
-	devcon->PSSetSamplers(0, 1, &s);
+	//auto t = texture->GetTexture();
+	//devcon->PSSetShaderResources(0, 1, &t);
+	//auto s = texture->GetSampler();
+	//devcon->PSSetSamplers(0, 1, &s);
 	
 
 	CBuffer_PerObject cBufferData;
@@ -102,6 +102,19 @@ void Renderer::RenderFrame()
 		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 		devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 		
+		auto t = go->texture->GetTexture();
+		devcon->PSSetShaderResources(0, 1, &t);
+		auto s = go->texture->GetSampler();
+		devcon->PSSetSamplers(0, 1, &s);
+
+		devcon->RSSetState(go->mesh->isDoubleSideded ? rasterizerCallNone : rasterizerCullBack);
+
+		// NOTE: pixel shader cuts the transparancy, this means that we cannot achive windows or translucent materails without a rework to current code, remove clip from pixel
+		// and un comment the below lines, then add a transparancy check to render transparent objects over opaque objects.
+		//devcon->OMSetBlendState(go->texture->isTransparent ? blendTransparent : blendOpaque, 0, 0xffffffff);
+
+		//devcon->OMSetDepthStencilState(go->texture->isTransparent ? depthWriteOff : nullptr, 1);
+
 		go->mesh->Render();
 	}
 
@@ -234,6 +247,41 @@ void Renderer::InitGraphics()
 		LOG("Oops, failed to create CBuffer.");
 		return;
 	}
+
+	// Setup raster states
+	D3D11_RASTERIZER_DESC rsDesc;
+	ZeroMemory(&rsDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rsDesc.CullMode = D3D11_CULL_NONE;
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	//rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+	// Create no culling rasterizer
+	dev->CreateRasterizerState(&rsDesc, &rasterizerCallNone);
+	// Create backface culling rasterizer
+	rsDesc.CullMode = D3D11_CULL_BACK;
+	dev->CreateRasterizerState(&rsDesc, &rasterizerCullBack);
+
+	// Setup transparancy
+	D3D11_BLEND_DESC bdDesc = { 0 };
+	bdDesc.IndependentBlendEnable = FALSE;
+	bdDesc.AlphaToCoverageEnable = FALSE;
+	bdDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	bdDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	bdDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	bdDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bdDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bdDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	bdDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	bdDesc.RenderTarget[0].BlendEnable = TRUE;
+	dev->CreateBlendState(&bdDesc, &blendTransparent);
+	bdDesc.RenderTarget[0].BlendEnable = FALSE;
+	dev->CreateBlendState(&bdDesc, &blendOpaque);
+
+	// Setup depth write off state
+	D3D11_DEPTH_STENCIL_DESC dsDesc = { 0 };
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dev->CreateDepthStencilState(&dsDesc, &depthWriteOff);
 
 }
 
