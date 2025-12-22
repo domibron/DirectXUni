@@ -60,6 +60,9 @@ Renderer::Renderer(Window& inWindow)
 
 void Renderer::Clean()
 {
+	delete font;
+	delete spriteBatch;
+
 	if (depthBuffer) depthBuffer->Release();
 
 	if (cBuffer_PerObject) cBuffer_PerObject->Release();
@@ -95,6 +98,11 @@ void Renderer::RenderFrame()
 	XMMATRIX view = camera.GetViewMatrix();
 	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 
+	// this fixes the font fucking up the shaders and such.
+	devcon->IASetInputLayout(pIL);
+	devcon->VSSetShader(pVS, 0, 0);
+	devcon->PSSetShader(pPS, 0, 0);
+
 	for (auto go : gameObjects) {
 	
 		XMMATRIX world = go->transform.GetWorldMatrix();
@@ -121,6 +129,8 @@ void Renderer::RenderFrame()
 	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and
 	// projection matrices outside of the for loop.
 	
+	RenderText("Hello World", 100, 100);
+
 	// Flip the back and front buffers around. Display on screen
 	swapchain->Present(0, 0);
 }
@@ -283,6 +293,10 @@ void Renderer::InitGraphics()
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	dev->CreateDepthStencilState(&dsDesc, &depthWriteOff);
 
+	// Fonts
+	font = new DirectX::SpriteFont(dev, L"Assets/arial.spritefont");
+	spriteBatch = new DirectX::SpriteBatch(devcon);
+
 }
 
 long Renderer::InitDepthBuffer()
@@ -323,4 +337,19 @@ long Renderer::InitDepthBuffer()
 	}
 	zBufferTexture->Release();
 	return S_OK;
+}
+
+void Renderer::RenderText(const char* text, int x, int y)
+{
+	// Get current depth stencil
+	ID3D11DepthStencilState* depthState;
+	devcon->OMGetDepthStencilState(&depthState, 0);
+
+	// Draw text - Rendering the font will change our device context. This is why depthState is used.
+	spriteBatch->Begin();
+	font->DrawString(spriteBatch, text, DirectX::XMFLOAT2(x, y));
+	spriteBatch->End();
+
+	// restore previous depth stencil
+	devcon->OMSetDepthStencilState(depthState, 0);
 }

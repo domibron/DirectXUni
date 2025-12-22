@@ -3,6 +3,7 @@
 #include "Transform.h" // You have directX using in this class FYI
 #include "Camera.h"
 #include <vector>
+#include <SpriteFont.h>
 
 
 struct IDXGISwapChain;
@@ -71,9 +72,14 @@ private:
 
 	ID3D11DepthStencilState* depthWriteOff = nullptr;
 
+	DirectX::SpriteFont* font = nullptr;
+	DirectX::SpriteBatch* spriteBatch = nullptr;
+
 	long InitD3D();
 	long InitPipeline();
 	void InitGraphics();
 	long InitDepthBuffer();
+
+	void RenderText(const char* text, int x, int y);
 };
 
