@@ -23,11 +23,6 @@ using namespace DirectX;
 
 #include "Texture.h"
 
-struct Vertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT4 Color;
-};
 
 struct CBuffer_PerObject {
 	XMMATRIX WVP; // 64 byte world matrix.
@@ -40,14 +35,15 @@ struct CBuffer_PerObject {
 	// 4,4,4,4
 	// XMMATRIX is a strictly aligned type for SIMD hardware
 	// Single Instruction, Multiple Data
-	XMVECTOR ambientLightColor;
-	XMVECTOR directionalLightColor;
-	XMVECTOR directionalLightDirection; // should use seperate cbuffer to optimise updates.
-	//XMVECTOR pointLightPosition;
-	//XMVECTOR pointLightColor;
-	//float pointLightStrength; // 4 bytes
-	PointLight pointLights[MAX_POINT_LIGHTS];
 };
+
+struct CBuffer_Lighting {
+	XMVECTOR ambientLightColor; // 16
+	DirectionalLight directionalLight; // 32
+	PointLight pointLights[MAX_POINT_LIGHTS]; // 48 * 8 = 384
+};
+
+
 
 Renderer::Renderer(Window& inWindow)
 	: window(inWindow)
@@ -93,8 +89,9 @@ void Renderer::RenderFrame()
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	CBuffer_PerObject cBufferData;
-	cBufferData.WVP = XMMatrixIdentity();
+	CBuffer_PerObject cBufferPerObjectData;
+	CBuffer_Lighting cBufferLightingData;
+	cBufferPerObjectData.WVP = XMMatrixIdentity();
 	XMMATRIX view = camera.GetViewMatrix();
 	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 
@@ -107,36 +104,41 @@ void Renderer::RenderFrame()
 	
 		// Transform
 		XMMATRIX world = go->transform.GetWorldMatrix();
-		cBufferData.WVP = world * view * projection;
+		cBufferPerObjectData.WVP = world * view * projection;
 
 		// Lighting
 		// Ambient Light
-		cBufferData.ambientLightColor = ambientLightColor;
+		cBufferLightingData.ambientLightColor = ambientLightColor;
 
 		// Directional Light
-		cBufferData.directionalLightColor = directionalLightColor;
+		cBufferLightingData.directionalLight.color = directionalLight.color;
 		XMMATRIX transpose = XMMatrixTranspose(world); // invert the world matrix / get the reversing caluclation.
 		// rotate the world light into object local (model space).
-		cBufferData.directionalLightDirection = XMVector3Transform(directionalLightShinesFrom, transpose);
+		cBufferLightingData.directionalLight.directionFrom = XMVector3Transform(directionalLight.directionFrom, transpose);
 
 		// Point light
 		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
+			
 			// Make sure the enabled state is always set correctly
-			cBufferData.pointLights[i].enabled = pointLights[i].enabled;
+			cBufferLightingData.pointLights[i].enabled = pointLights[i].enabled;
 
 			// skip point lights that aren't eneabled
-			if (!pointLights[i].enabled)
+			if (!pointLights[i].enabled) {
 				continue;
+			}
 
 			XMMATRIX inverse = XMMatrixInverse(nullptr, world);
 
-			cBufferData.pointLights[i].position = XMVector3Transform(pointLights[i].position, inverse);
-			cBufferData.pointLights[i].color = pointLights[i].color;
-			cBufferData.pointLights[i].strength = pointLights[i].strength;
+			cBufferLightingData.pointLights[i].position = XMVector3Transform(pointLights[i].position, inverse);
+			cBufferLightingData.pointLights[i].color = pointLights[i].color;
+			cBufferLightingData.pointLights[i].strength = pointLights[i].strength;
 		}
 
-		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
-		devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
+		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferPerObjectData, NULL, NULL);
+		devcon->VSSetConstantBuffers(12, 1, &cBuffer_PerObject);
+
+		devcon->UpdateSubresource(cBuffer_Lighting, NULL, NULL, &cBufferLightingData, NULL, NULL);
+		devcon->VSSetConstantBuffers(13, 1, &cBuffer_Lighting);
 		
 		auto t = go->texture->GetTexture();
 		devcon->PSSetShaderResources(0, 1, &t);
@@ -276,13 +278,20 @@ long Renderer::InitPipeline()
 
 void Renderer::InitGraphics()
 {
-
+	// Per-Object Buffer
 	D3D11_BUFFER_DESC cbd = { 0 };
 	cbd.Usage = D3D11_USAGE_DEFAULT;
 	cbd.ByteWidth = sizeof(CBuffer_PerObject);
 	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_PerObject))) {
 		LOG("Oops, failed to create CBuffer.");
+		return;
+	}
+
+	// Lighting CBuffer
+	cbd.ByteWidth = sizeof(CBuffer_Lighting);
+	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_Lighting))) {
+		LOG("Oops, failed to creaate CBuffer_Lighting.");
 		return;
 	}
 

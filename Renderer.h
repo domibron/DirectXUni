@@ -42,6 +42,11 @@ struct PointLight {
 	// 48 total bytes
 };
 
+struct DirectionalLight {
+	DirectX::XMVECTOR directionFrom{ 0,0,0 };
+	DirectX::XMVECTOR color{ 1,1,1 };
+};
+
 class Renderer
 {
 
@@ -60,6 +65,8 @@ public:
 	void RegisterGameObject(GameObject* e);
 	void RemoveGameObject(GameObject* e);
 
+	DirectX::XMVECTOR ambientLightColor{ 0.1f,0.1f,0.1f };
+	DirectionalLight directionalLight{ {0.9f,0.8f,0.75f}, {0.9f,0.8f,0.75f} };
 	PointLight pointLights[MAX_POINT_LIGHTS];
 
 	
@@ -80,6 +87,7 @@ private:
 	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
 	ID3D11Buffer* iBuffer = nullptr; // Index buffer
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
+	ID3D11Buffer* cBuffer_Lighting = nullptr; // Constant Buffer - for lighting
 
 	ID3D11DepthStencilView* depthBuffer = NULL;
 
@@ -93,13 +101,6 @@ private:
 
 	DirectX::SpriteFont* font = nullptr;
 	DirectX::SpriteBatch* spriteBatch = nullptr;
-
-	DirectX::XMVECTOR ambientLightColor{ 0.1f,0.1f,0.1f };
-	DirectX::XMVECTOR directionalLightColor{ 0.9f, 0.8f, 0.75f };
-	DirectX::XMVECTOR directionalLightShinesFrom{ 0.9f,0.8f,0.75f };
-//	DirectX::XMVECTOR pointLightPosition = { 0, 1.0f, -4 };
-//	DirectX::XMVECTOR pointLightColor = { 0.85f, 0,0.85f, 1 };
-//	float pointLightStrength = 10;
 
 	long InitD3D();
 	long InitPipeline();
