@@ -89,17 +89,9 @@ void Renderer::Clean()
 void Renderer::RenderFrame()
 {
 
-	// C;ear back buffer with desired color
-	//FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	// Clear back buffer with desired color
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-
-	//auto t = texture->GetTexture();
-	//devcon->PSSetShaderResources(0, 1, &t);
-	//auto s = texture->GetSampler();
-	//devcon->PSSetSamplers(0, 1, &s);
-	
 
 	CBuffer_PerObject cBufferData;
 	cBufferData.WVP = XMMatrixIdentity();
@@ -128,9 +120,6 @@ void Renderer::RenderFrame()
 		cBufferData.directionalLightDirection = XMVector3Transform(directionalLightShinesFrom, transpose);
 
 		// Point light
-		//cBufferData.pointLightPosition = pointLightPosition;
-		//cBufferData.pointLightColor = pointLightColor;
-		//cBufferData.pointLightStrength = pointLightStrength;
 		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
 			// Make sure the enabled state is always set correctly
 			cBufferData.pointLights[i].enabled = pointLights[i].enabled;
