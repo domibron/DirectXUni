@@ -43,6 +43,10 @@ struct CBuffer_PerObject {
 	XMVECTOR ambientLightColor;
 	XMVECTOR directionalLightColor;
 	XMVECTOR directionalLightDirection; // should use seperate cbuffer to optimise updates.
+	//XMVECTOR pointLightPosition;
+	//XMVECTOR pointLightColor;
+	//float pointLightStrength; // 4 bytes
+	PointLight pointLights[MAX_POINT_LIGHTS];
 };
 
 Renderer::Renderer(Window& inWindow)
@@ -84,6 +88,7 @@ void Renderer::Clean()
 
 void Renderer::RenderFrame()
 {
+
 	// C;ear back buffer with desired color
 	//FLOAT bg[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
@@ -121,6 +126,25 @@ void Renderer::RenderFrame()
 		XMMATRIX transpose = XMMatrixTranspose(world); // invert the world matrix / get the reversing caluclation.
 		// rotate the world light into object local (model space).
 		cBufferData.directionalLightDirection = XMVector3Transform(directionalLightShinesFrom, transpose);
+
+		// Point light
+		//cBufferData.pointLightPosition = pointLightPosition;
+		//cBufferData.pointLightColor = pointLightColor;
+		//cBufferData.pointLightStrength = pointLightStrength;
+		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
+			// Make sure the enabled state is always set correctly
+			cBufferData.pointLights[i].enabled = pointLights[i].enabled;
+
+			// skip point lights that aren't eneabled
+			if (!pointLights[i].enabled)
+				continue;
+
+			XMMATRIX inverse = XMMatrixInverse(nullptr, world);
+
+			cBufferData.pointLights[i].position = XMVector3Transform(pointLights[i].position, inverse);
+			cBufferData.pointLights[i].color = pointLights[i].color;
+			cBufferData.pointLights[i].strength = pointLights[i].strength;
+		}
 
 		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 		devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);

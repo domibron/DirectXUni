@@ -1,3 +1,5 @@
+#define MAX_POINT_LIGHTS 8
+
 #pragma once
 
 #include "Transform.h" // You have directX using in this class FYI
@@ -30,8 +32,19 @@ class GameObject;
 
 class Texture;
 
+struct PointLight {
+	DirectX::XMVECTOR position{ 0,0,0 }; // 16 bytes
+	DirectX::XMVECTOR color{ 1,1,1 }; // 16 bytes
+
+	float strength = 10; // 4 bytes
+	bool enabled = false; // 4 bytes
+	float padding[2]; // 8 bytes
+	// 48 total bytes
+};
+
 class Renderer
 {
+
 public:
 	Renderer(Window& inWindow);
 	void Clean();
@@ -47,7 +60,13 @@ public:
 	void RegisterGameObject(GameObject* e);
 	void RemoveGameObject(GameObject* e);
 
+	PointLight pointLights[MAX_POINT_LIGHTS];
+
+	
 private:
+
+	
+
 	Window& window;
 	IDXGISwapChain* swapchain = nullptr;
 	ID3D11Device* dev = nullptr;
@@ -78,6 +97,9 @@ private:
 	DirectX::XMVECTOR ambientLightColor{ 0.1f,0.1f,0.1f };
 	DirectX::XMVECTOR directionalLightColor{ 0.9f, 0.8f, 0.75f };
 	DirectX::XMVECTOR directionalLightShinesFrom{ 0.9f,0.8f,0.75f };
+//	DirectX::XMVECTOR pointLightPosition = { 0, 1.0f, -4 };
+//	DirectX::XMVECTOR pointLightColor = { 0.85f, 0,0.85f, 1 };
+//	float pointLightStrength = 10;
 
 	long InitD3D();
 	long InitPipeline();

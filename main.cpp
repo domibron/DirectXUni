@@ -52,6 +52,9 @@ int WINAPI WinMain(
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
 	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
 
+	renderer.pointLights[0] = { XMVECTOR{-1, 1, -3}, {0.85f, 0, 0.85f}, 10, true };
+	renderer.pointLights[1] = { XMVECTOR{1, -1, -4}, {0, 0.85f, 0.85f}, 20, true };
+
 	// Used to hold windows event messages
 	MSG msg;
 
