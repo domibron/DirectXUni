@@ -75,6 +75,10 @@ private:
 	DirectX::SpriteFont* font = nullptr;
 	DirectX::SpriteBatch* spriteBatch = nullptr;
 
+	DirectX::XMVECTOR ambientLightColor{ 0.1f,0.1f,0.1f };
+	DirectX::XMVECTOR directionalLightColor{ 0.9f, 0.8f, 0.75f };
+	DirectX::XMVECTOR directionalLightShinesFrom{ 0.9f,0.8f,0.75f };
+
 	long InitD3D();
 	long InitPipeline();
 	void InitGraphics();

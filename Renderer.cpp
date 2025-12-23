@@ -40,6 +40,9 @@ struct CBuffer_PerObject {
 	// 4,4,4,4
 	// XMMATRIX is a strictly aligned type for SIMD hardware
 	// Single Instruction, Multiple Data
+	XMVECTOR ambientLightColor;
+	XMVECTOR directionalLightColor;
+	XMVECTOR directionalLightDirection; // should use seperate cbuffer to optimise updates.
 };
 
 Renderer::Renderer(Window& inWindow)
@@ -105,8 +108,20 @@ void Renderer::RenderFrame()
 
 	for (auto go : gameObjects) {
 	
+		// Transform
 		XMMATRIX world = go->transform.GetWorldMatrix();
 		cBufferData.WVP = world * view * projection;
+
+		// Lighting
+		// Ambient Light
+		cBufferData.ambientLightColor = ambientLightColor;
+
+		// Directional Light
+		cBufferData.directionalLightColor = directionalLightColor;
+		XMMATRIX transpose = XMMatrixTranspose(world); // invert the world matrix / get the reversing caluclation.
+		// rotate the world light into object local (model space).
+		cBufferData.directionalLightDirection = XMVector3Transform(directionalLightShinesFrom, transpose);
+
 		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferData, NULL, NULL);
 		devcon->VSSetConstantBuffers(0, 1, &cBuffer_PerObject);
 		
