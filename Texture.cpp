@@ -5,7 +5,9 @@
 
 #include "Renderer.h"
 
-Texture::Texture(Renderer& renderer, std::string path, bool transparent)
+#include <DDSTextureLoader.h>
+
+Texture::Texture(Renderer& renderer, std::string path, bool transparent, TextureType type)
 	: isTransparent(transparent)
 {
 	ID3D11Device* dev = renderer.GetDevice();
@@ -13,7 +15,19 @@ Texture::Texture(Renderer& renderer, std::string path, bool transparent)
 
 	std::wstring filepath = std::wstring(path.begin(), path.end());
 
-	DirectX::CreateWICTextureFromFile(dev, devcon, filepath.c_str(), NULL, &texture);
+	switch (type)
+	{
+	case Texture::TextureType::Texture2D:
+		DirectX::CreateWICTextureFromFile(dev, devcon, filepath.c_str(), NULL, &texture);
+		break;
+	case Texture::TextureType::Cubemap:
+		DirectX::CreateDDSTextureFromFile(dev, devcon, filepath.c_str(), NULL, &texture);
+		break;
+	default:
+		break;
+	}
+
+	//DirectX::CreateWICTextureFromFile(dev, devcon, filepath.c_str(), NULL, &texture);
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));

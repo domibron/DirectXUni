@@ -76,6 +76,10 @@ void Renderer::Clean()
 	if (pPS) pPS->Release();
 	if (pIL) pIL->Release();
 
+	if (pVSSkybox) pVSSkybox->Release();
+	if (pPSSkybox) pPSSkybox->Release();
+	if (pILSkybox) pILSkybox->Release();
+
 	if (backbuffer) backbuffer->Release();
 	if (swapchain) swapchain->Release();
 	if (dev) dev->Release();
@@ -88,6 +92,8 @@ void Renderer::RenderFrame()
 	// Clear back buffer with desired color
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	DrawSkybox();
 
 	CBuffer_PerObject cBufferPerObjectData;
 	CBuffer_Lighting cBufferLightingData;
@@ -163,6 +169,51 @@ void Renderer::RenderFrame()
 
 	// Flip the back and front buffers around. Display on screen
 	swapchain->Present(0, 0);
+}
+
+void Renderer::DrawSkybox()
+{
+	// Early return if skybox is not set
+	if (skyboxObject == nullptr) {
+		return;
+	}
+
+	// Front-face culling and disable depth write
+	devcon->OMSetDepthStencilState(depthWriteOff, 1);
+	devcon->RSSetState(rasterizerCallFront);
+
+	// Set skybox shaders
+	devcon->VSSetShader(pVSSkybox, 0, 0);
+	devcon->PSSetShader(pPSSkybox, 0, 0);
+	devcon->IASetInputLayout(pILSkybox);
+
+	// Constant buffer data (manually rolling this for skybox. Usually handled in RenderFrame)
+	CBuffer_PerObject cbuf;
+	XMMATRIX translation, projection, view;
+	XMVECTOR camPos = camera.transform.position;
+	translation = XMMatrixTranslation(XMVectorGetX(camPos), XMVectorGetY(camPos), XMVectorGetZ(camPos));
+	projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+	view = camera.GetViewMatrix();
+	cbuf.WVP = translation * view * projection;
+	devcon->UpdateSubresource(cBuffer_PerObject, 0, 0, &cbuf, 0, 0);
+	devcon->VSSetConstantBuffers(12, 1, &cBuffer_PerObject);
+
+	// Set shader resources
+	auto t = skyboxObject->texture->GetTexture();
+	devcon->PSSetShaderResources(0, 1, &t);
+	auto s = skyboxObject->texture->GetSampler();
+	devcon->PSSetSamplers(0, 1, &s);
+
+	skyboxObject->mesh->Render();
+
+	// Back-face culling and enable depth write
+	devcon->OMSetDepthStencilState(nullptr, 1);
+	devcon->RSSetState(rasterizerCullBack);
+
+	// Set standard shaders
+	devcon->VSSetShader(pVS, 0, 0);
+	devcon->PSSetShader(pPS, 0, 0);
+	devcon->IASetInputLayout(pIL);
 }
 
 
@@ -263,6 +314,9 @@ long Renderer::InitPipeline()
 	ShaderLoading::LoadVertexShader("Compiled Shaders/VertexShader.cso", dev, &pVS, &pIL);
 	ShaderLoading::LoadPixelShader("Compiled Shaders/PixelShader.cso", dev, &pPS);
 
+	ShaderLoading::LoadVertexShader("Compiled Shaders/SkyboxVShader.cso", dev, &pVSSkybox, &pILSkybox);
+	ShaderLoading::LoadPixelShader("Compiled Shaders/SkyboxPShader.cso", dev, &pPSSkybox);
+
 	// TODO: add error handling to the two functions above.
 	// Set shader objects as active shaders in the pipeline
 	devcon->VSSetShader(pVS, 0, 0);
@@ -306,6 +360,9 @@ void Renderer::InitGraphics()
 	// Create backface culling rasterizer
 	rsDesc.CullMode = D3D11_CULL_BACK;
 	dev->CreateRasterizerState(&rsDesc, &rasterizerCullBack);
+	// Create frontface culling rasterizer
+	rsDesc.CullMode = D3D11_CULL_FRONT;
+	dev->CreateRasterizerState(&rsDesc, &rasterizerCallFront);
 
 	// Setup transparancy
 	D3D11_BLEND_DESC bdDesc = { 0 };

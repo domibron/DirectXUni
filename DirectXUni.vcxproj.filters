@@ -84,6 +84,8 @@
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl" />
     <FxCompile Include="PixelShader.hlsl" />
+    <FxCompile Include="SkyboxVShader.hlsl" />
+    <FxCompile Include="SkyboxPShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

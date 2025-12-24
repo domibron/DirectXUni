@@ -31,6 +31,7 @@ int WINAPI WinMain(
 	Mesh mesh_grass{ renderer, "Assets/grass.obj", true };
 	Texture tex_box{ renderer, "Assets/Box.bmp" };
 	Texture tex_grass{ renderer, "Assets/grass.png", true };
+	Texture tex_skybox{ renderer, "Assets/skybox01.dds", false, Texture::TextureType::Cubemap };
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -40,6 +41,9 @@ int WINAPI WinMain(
 	*/
 
 	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
+
+	GameObject go_skybox{ "Skybox", &mesh_cube, &tex_skybox };
+	renderer.skyboxObject = &go_skybox;
 
 	GameObject go1{ "Cube", &mesh_cube, &tex_box };
 	GameObject go2{ "Sphere", &mesh_sphere, &tex_box };

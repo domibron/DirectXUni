@@ -13,9 +13,13 @@ private:
 	ID3D11SamplerState* sampler = nullptr; // Sampler.
 
 public:
+	enum class TextureType {
+		Texture2D,
+		Cubemap
+	};
 	ID3D11ShaderResourceView* GetTexture() { return texture; }
 	ID3D11SamplerState* GetSampler() { return sampler; }
-	Texture(Renderer& renderer, std::string path, bool transparent = false);
+	Texture(Renderer& renderer, std::string path, bool transparent = false, TextureType type = TextureType::Texture2D);
 	~Texture();
 
 	bool isTransparent = false;

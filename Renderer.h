@@ -54,6 +54,7 @@ public:
 	Renderer(Window& inWindow);
 	void Clean();
 	void RenderFrame();
+	void DrawSkybox();
 
 	ID3D11Device* GetDevice() { return dev; }
 	ID3D11DeviceContext* GetDeviceCon() { return devcon; }
@@ -61,6 +62,7 @@ public:
 
 	Camera camera;
 	std::vector<GameObject*> gameObjects;
+	GameObject* skyboxObject = nullptr;
 
 	void RegisterGameObject(GameObject* e);
 	void RemoveGameObject(GameObject* e);
@@ -83,6 +85,11 @@ private:
 	ID3D11VertexShader* pVS = nullptr; // Vertex Shader
 	ID3D11PixelShader* pPS = nullptr; // Pixel Shader
 	ID3D11InputLayout* pIL = nullptr; // Input layout
+	
+	// sky box stuff
+	ID3D11VertexShader* pVSSkybox = nullptr;
+	ID3D11PixelShader* pPSSkybox = nullptr;
+	ID3D11InputLayout* pILSkybox = nullptr;
 
 	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
 	ID3D11Buffer* iBuffer = nullptr; // Index buffer
@@ -92,6 +99,7 @@ private:
 	ID3D11DepthStencilView* depthBuffer = NULL;
 
 	ID3D11RasterizerState* rasterizerCullBack = nullptr;
+	ID3D11RasterizerState* rasterizerCallFront = nullptr;
 	ID3D11RasterizerState* rasterizerCallNone = nullptr;
 
 	ID3D11BlendState* blendOpaque = nullptr;
