@@ -94,6 +94,7 @@ private:
 	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
 	ID3D11Buffer* iBuffer = nullptr; // Index buffer
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
+	ID3D11Buffer* cBuffer_PerFrame = nullptr;
 	ID3D11Buffer* cBuffer_Lighting = nullptr; // Constant Buffer - for lighting
 
 	ID3D11DepthStencilView* depthBuffer = NULL;

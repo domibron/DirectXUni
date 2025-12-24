@@ -25,6 +25,7 @@ using namespace DirectX;
 
 
 struct CBuffer_PerObject {
+	XMMATRIX World; // 64
 	XMMATRIX WVP; // 64 byte world matrix.
 	// The 64 comes from each row being 16 bytes
 	// and 4 rows in total. 4 * 16 = 64 bytes
@@ -43,6 +44,10 @@ struct CBuffer_Lighting {
 	PointLight pointLights[MAX_POINT_LIGHTS]; // 48 * 8 = 384
 };
 
+struct CBuffer_PerFrame {
+	XMFLOAT3 cameraPos; // 12 bytes
+	float padding; // 4 for a total of 16
+};
 
 
 Renderer::Renderer(Window& inWindow)
@@ -69,6 +74,9 @@ void Renderer::Clean()
 	if (depthBuffer) depthBuffer->Release();
 
 	if (cBuffer_PerObject) cBuffer_PerObject->Release();
+	if (cBuffer_PerFrame) cBuffer_PerFrame->Release();
+	if (cBuffer_Lighting) cBuffer_Lighting->Release();
+
 	if (iBuffer) iBuffer->Release();
 	if (vBuffer) vBuffer->Release();
 
@@ -101,6 +109,11 @@ void Renderer::RenderFrame()
 	XMMATRIX view = camera.GetViewMatrix();
 	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 
+	CBuffer_PerFrame cBufferPerFrameData;
+	XMStoreFloat3(&cBufferPerFrameData.cameraPos, camera.transform.position);
+	devcon->UpdateSubresource(cBuffer_PerFrame, NULL, NULL, &cBufferPerFrameData, NULL, NULL);
+	devcon->VSSetConstantBuffers(11, 1, &cBuffer_PerFrame);
+
 	// this fixes the font fucking up the shaders and such.
 	devcon->IASetInputLayout(pIL);
 	devcon->VSSetShader(pVS, 0, 0);
@@ -110,6 +123,7 @@ void Renderer::RenderFrame()
 	
 		// Transform
 		XMMATRIX world = go->transform.GetWorldMatrix();
+		cBufferPerObjectData.World = world;
 		cBufferPerObjectData.WVP = world * view * projection;
 
 		// Lighting
@@ -150,6 +164,8 @@ void Renderer::RenderFrame()
 		devcon->PSSetShaderResources(0, 1, &t);
 		auto s = go->texture->GetSampler();
 		devcon->PSSetSamplers(0, 1, &s);
+		auto ts = skyboxObject->texture->GetTexture();
+		devcon->PSSetShaderResources(1, 1, &ts);
 
 		devcon->RSSetState(go->mesh->isDoubleSideded ? rasterizerCallNone : rasterizerCullBack);
 
@@ -311,8 +327,11 @@ long Renderer::InitD3D()
 
 long Renderer::InitPipeline()
 {
-	ShaderLoading::LoadVertexShader("Compiled Shaders/VertexShader.cso", dev, &pVS, &pIL);
-	ShaderLoading::LoadPixelShader("Compiled Shaders/PixelShader.cso", dev, &pPS);
+	//ShaderLoading::LoadVertexShader("Compiled Shaders/VertexShader.cso", dev, &pVS, &pIL);
+	//ShaderLoading::LoadPixelShader("Compiled Shaders/PixelShader.cso", dev, &pPS);
+
+	ShaderLoading::LoadVertexShader("Compiled Shaders/ReflectiveVShader.cso", dev, &pVS, &pIL);
+	ShaderLoading::LoadPixelShader("Compiled Shaders/ReflectivePShader.cso", dev, &pPS);
 
 	ShaderLoading::LoadVertexShader("Compiled Shaders/SkyboxVShader.cso", dev, &pVSSkybox, &pILSkybox);
 	ShaderLoading::LoadPixelShader("Compiled Shaders/SkyboxPShader.cso", dev, &pPSSkybox);
@@ -339,6 +358,13 @@ void Renderer::InitGraphics()
 	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_PerObject))) {
 		LOG("Oops, failed to create CBuffer.");
+		return;
+	}
+
+	// Per Frame Buffer
+	cbd.ByteWidth = sizeof(CBuffer_PerFrame);
+	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_PerFrame))) {
+		LOG("Oops, failed to create CBuffer_PerFrame");
 		return;
 	}
 

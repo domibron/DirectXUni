@@ -8,5 +8,12 @@ struct VIn
 
 cbuffer PerObject : register(b12)
 {
+    matrix World; // 64 bytes
     matrix WVP; // 64 bytes
+}
+
+cbuffer PerFrame : register(b11)
+{
+    float3 cameraPosition; // 12
+    float padding; // 4
 }

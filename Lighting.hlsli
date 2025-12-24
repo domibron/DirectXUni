@@ -58,3 +58,20 @@ float3 CalculateAllLighting(float3 amientColor, DirectionalLight light, PointLig
     float3 pointTotal = CalculatePointLights(pointLights, vPosition, vNormal);
     return saturate(amientColor + directional + pointTotal);
 }
+
+float3 CalculateReflectionUVW(matrix World, float4 vertexPos, float3 vertexNorm, float3 cameraPos)
+{
+    // Vertex position in world space
+    float3 wpos = mul(World, vertexNorm);
+    
+    // Surface normal in world space
+    float3 wnormal = normalize(mul(World, float4(vertexNorm, 0)));
+    
+    // Obtain eye vector
+    float3 eyeDir = normalize(cameraPos - wpos);
+    
+    // Compute reflection vector
+    // return 2.0 * dot(eyeDir, wnormal) * wnormal - eyeDir;
+    return reflect(-eyeDir, wnormal);
+
+}

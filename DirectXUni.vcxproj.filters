@@ -86,6 +86,8 @@
     <FxCompile Include="PixelShader.hlsl" />
     <FxCompile Include="SkyboxVShader.hlsl" />
     <FxCompile Include="SkyboxPShader.hlsl" />
+    <FxCompile Include="ReflectiveVShader.hlsl" />
+    <FxCompile Include="ReflectivePShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
