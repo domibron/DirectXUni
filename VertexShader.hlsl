@@ -21,7 +21,8 @@ VOut main(VIn input)
     output.uv = input.uv;
     
     // lighting (Color)
-    output.color = float4(CalculateAllLighting(ambientLightCol.xyz, dirLight, pointLights, float4(input.position, 1), input.normal), 1);
+    //output.color = float4(CalculateAllLighting(ambientLightCol.xyz, dirLight, pointLights, float4(input.position, 1), input.normal), 1);
+    output.color = float4(1,1,1, 1);
     
     return output;
 }

@@ -23,6 +23,8 @@ using namespace DirectX;
 
 #include "Texture.h"
 
+#include "Material.h"
+
 
 struct CBuffer_PerObject {
 	XMMATRIX World; // 64
@@ -58,11 +60,6 @@ Renderer::Renderer(Window& inWindow)
 		return;
 	}
 
-	if (InitPipeline() != S_OK) {
-		LOG("Failed to initialise shader pipeline.");
-		return;
-	}
-
 	InitGraphics();
 }
 
@@ -77,16 +74,16 @@ void Renderer::Clean()
 	if (cBuffer_PerFrame) cBuffer_PerFrame->Release();
 	if (cBuffer_Lighting) cBuffer_Lighting->Release();
 
-	if (iBuffer) iBuffer->Release();
-	if (vBuffer) vBuffer->Release();
+	//if (iBuffer) iBuffer->Release();
+	//if (vBuffer) vBuffer->Release();
 
-	if (pVS) pVS->Release();
-	if (pPS) pPS->Release();
-	if (pIL) pIL->Release();
+	//if (pVS) pVS->Release();
+	//if (pPS) pPS->Release();
+	//if (pIL) pIL->Release();
 
-	if (pVSSkybox) pVSSkybox->Release();
-	if (pPSSkybox) pPSSkybox->Release();
-	if (pILSkybox) pILSkybox->Release();
+	//if (pVSSkybox) pVSSkybox->Release();
+	//if (pPSSkybox) pPSSkybox->Release();
+	//if (pILSkybox) pILSkybox->Release();
 
 	if (backbuffer) backbuffer->Release();
 	if (swapchain) swapchain->Release();
@@ -98,26 +95,27 @@ void Renderer::RenderFrame()
 {
 
 	// Clear back buffer with desired color
-	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::DarkSlateGray);
+	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::Aqua);
 	devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
+	
 	DrawSkybox();
 
+
 	CBuffer_PerObject cBufferPerObjectData;
-	CBuffer_Lighting cBufferLightingData;
-	cBufferPerObjectData.WVP = XMMatrixIdentity();
+	//CBuffer_Lighting cBufferLightingData;
+	//cBufferPerObjectData.WVP = XMMatrixIdentity();
 	XMMATRIX view = camera.GetViewMatrix();
 	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 
 	CBuffer_PerFrame cBufferPerFrameData;
 	XMStoreFloat3(&cBufferPerFrameData.cameraPos, camera.transform.position);
-	devcon->UpdateSubresource(cBuffer_PerFrame, NULL, NULL, &cBufferPerFrameData, NULL, NULL);
+	devcon->UpdateSubresource(cBuffer_PerFrame, 0, 0, &cBufferPerFrameData, 0, 0);
 	devcon->VSSetConstantBuffers(11, 1, &cBuffer_PerFrame);
 
 	// this fixes the font fucking up the shaders and such.
-	devcon->IASetInputLayout(pIL);
-	devcon->VSSetShader(pVS, 0, 0);
-	devcon->PSSetShader(pPS, 0, 0);
+	//devcon->IASetInputLayout(pIL);
+	//devcon->VSSetShader(pVS, 0, 0);
+	//devcon->PSSetShader(pPS, 0, 0);
 
 	for (auto go : gameObjects) {
 	
@@ -126,62 +124,24 @@ void Renderer::RenderFrame()
 		cBufferPerObjectData.World = world;
 		cBufferPerObjectData.WVP = world * view * projection;
 
-		// Lighting
-		// Ambient Light
-		cBufferLightingData.ambientLightColor = ambientLightColor;
-
-		// Directional Light
-		cBufferLightingData.directionalLight.color = directionalLight.color;
-		XMMATRIX transpose = XMMatrixTranspose(world); // invert the world matrix / get the reversing caluclation.
-		// rotate the world light into object local (model space).
-		cBufferLightingData.directionalLight.directionFrom = XMVector3Transform(directionalLight.directionFrom, transpose);
-
-		// Point light
-		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
-			
-			// Make sure the enabled state is always set correctly
-			cBufferLightingData.pointLights[i].enabled = pointLights[i].enabled;
-
-			// skip point lights that aren't eneabled
-			if (!pointLights[i].enabled) {
-				continue;
-			}
-
-			XMMATRIX inverse = XMMatrixInverse(nullptr, world);
-
-			cBufferLightingData.pointLights[i].position = XMVector3Transform(pointLights[i].position, inverse);
-			cBufferLightingData.pointLights[i].color = pointLights[i].color;
-			cBufferLightingData.pointLights[i].strength = pointLights[i].strength;
-		}
-
 		devcon->UpdateSubresource(cBuffer_PerObject, NULL, NULL, &cBufferPerObjectData, NULL, NULL);
 		devcon->VSSetConstantBuffers(12, 1, &cBuffer_PerObject);
 
-		devcon->UpdateSubresource(cBuffer_Lighting, NULL, NULL, &cBufferLightingData, NULL, NULL);
-		devcon->VSSetConstantBuffers(13, 1, &cBuffer_Lighting);
-		
-		auto t = go->texture->GetTexture();
-		devcon->PSSetShaderResources(0, 1, &t);
-		auto s = go->texture->GetSampler();
-		devcon->PSSetSamplers(0, 1, &s);
-		auto ts = skyboxObject->texture->GetTexture();
-		devcon->PSSetShaderResources(1, 1, &ts);
-
 		devcon->RSSetState(go->mesh->isDoubleSideded ? rasterizerCallNone : rasterizerCullBack);
+		
+		devcon->OMSetBlendState(go->material->GetTexture()->isTransparent ? blendTransparent : blendOpaque, 0, 0xffffffff);
 
-		// NOTE: pixel shader cuts the transparancy, this means that we cannot achive windows or translucent materails without a rework to current code, remove clip from pixel
-		// and un comment the below lines, then add a transparancy check to render transparent objects over opaque objects.
-		//devcon->OMSetBlendState(go->texture->isTransparent ? blendTransparent : blendOpaque, 0, 0xffffffff);
+		devcon->OMSetDepthStencilState(go->material->GetTexture()->isTransparent ? depthWriteOff : nullptr, 1);
 
-		//devcon->OMSetDepthStencilState(go->texture->isTransparent ? depthWriteOff : nullptr, 1);
-
+		go->material->UpdateMaterial(go);
+		go->material->Bind();
 		go->mesh->Render();
 	}
 
 	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and
 	// projection matrices outside of the for loop.
 	
-	RenderText("Hello World", 100, 100);
+	//RenderText("Hello World", 100, 100);
 
 	// Flip the back and front buffers around. Display on screen
 	swapchain->Present(0, 0);
@@ -191,6 +151,7 @@ void Renderer::DrawSkybox()
 {
 	// Early return if skybox is not set
 	if (skyboxObject == nullptr) {
+		LOG("There is no skybox to render.");
 		return;
 	}
 
@@ -198,10 +159,10 @@ void Renderer::DrawSkybox()
 	devcon->OMSetDepthStencilState(depthWriteOff, 1);
 	devcon->RSSetState(rasterizerCallFront);
 
-	// Set skybox shaders
-	devcon->VSSetShader(pVSSkybox, 0, 0);
-	devcon->PSSetShader(pPSSkybox, 0, 0);
-	devcon->IASetInputLayout(pILSkybox);
+	//// Set skybox shaders
+	//devcon->VSSetShader(pVSSkybox, 0, 0);
+	//devcon->PSSetShader(pPSSkybox, 0, 0);
+	//devcon->IASetInputLayout(pILSkybox);
 
 	// Constant buffer data (manually rolling this for skybox. Usually handled in RenderFrame)
 	CBuffer_PerObject cbuf;
@@ -214,22 +175,30 @@ void Renderer::DrawSkybox()
 	devcon->UpdateSubresource(cBuffer_PerObject, 0, 0, &cbuf, 0, 0);
 	devcon->VSSetConstantBuffers(12, 1, &cBuffer_PerObject);
 
-	// Set shader resources
-	auto t = skyboxObject->texture->GetTexture();
-	devcon->PSSetShaderResources(0, 1, &t);
-	auto s = skyboxObject->texture->GetSampler();
-	devcon->PSSetSamplers(0, 1, &s);
+	//// Set shader resources
+	//auto t = skyboxObject->texture->GetTexture();
+	//devcon->PSSetShaderResources(0, 1, &t);
+	//auto s = skyboxObject->texture->GetSampler();
+	//devcon->PSSetSamplers(0, 1, &s);
 
+	//skyboxObject->mesh->Render();
+
+	//// Back-face culling and enable depth write
+	//devcon->OMSetDepthStencilState(nullptr, 1);
+	//devcon->RSSetState(rasterizerCullBack);
+
+	//// Set standard shaders
+	//devcon->VSSetShader(pVS, 0, 0);
+	//devcon->PSSetShader(pPS, 0, 0);
+	//devcon->IASetInputLayout(pIL);
+
+	skyboxObject->material->UpdateMaterial(skyboxObject);
+	skyboxObject->material->Bind();
 	skyboxObject->mesh->Render();
 
 	// Back-face culling and enable depth write
 	devcon->OMSetDepthStencilState(nullptr, 1);
 	devcon->RSSetState(rasterizerCullBack);
-
-	// Set standard shaders
-	devcon->VSSetShader(pVS, 0, 0);
-	devcon->PSSetShader(pPS, 0, 0);
-	devcon->IASetInputLayout(pIL);
 }
 
 
@@ -321,30 +290,6 @@ long Renderer::InitD3D()
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
 	devcon->RSSetViewports(1, &viewport);
-
-	return S_OK;
-}
-
-long Renderer::InitPipeline()
-{
-	//ShaderLoading::LoadVertexShader("Compiled Shaders/VertexShader.cso", dev, &pVS, &pIL);
-	//ShaderLoading::LoadPixelShader("Compiled Shaders/PixelShader.cso", dev, &pPS);
-
-	ShaderLoading::LoadVertexShader("Compiled Shaders/ReflectiveVShader.cso", dev, &pVS, &pIL);
-	ShaderLoading::LoadPixelShader("Compiled Shaders/ReflectivePShader.cso", dev, &pPS);
-
-	ShaderLoading::LoadVertexShader("Compiled Shaders/SkyboxVShader.cso", dev, &pVSSkybox, &pILSkybox);
-	ShaderLoading::LoadPixelShader("Compiled Shaders/SkyboxPShader.cso", dev, &pPSSkybox);
-
-	// TODO: add error handling to the two functions above.
-	// Set shader objects as active shaders in the pipeline
-	devcon->VSSetShader(pVS, 0, 0);
-	devcon->PSSetShader(pPS, 0, 0);
-
-
-
-	// should be in render loop
-	devcon->IASetInputLayout(pIL);
 
 	return S_OK;
 }

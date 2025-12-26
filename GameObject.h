@@ -6,7 +6,8 @@
 #include "Transform.h"
 
 class Mesh;
-class Texture;
+//class Texture;
+class Material;
 
 class GameObject
 {
@@ -18,10 +19,11 @@ public:
 
 	Mesh* mesh;
 
-	Texture* texture;
+	//Texture* texture;
+	Material* material;
 
 	std::string GetName() { return name; }
 
-	GameObject(std::string objectName, Mesh* objectMesh, Texture* objectTexture);
+	GameObject(std::string objectName, Mesh* objectMesh, Material* material);
 };
 

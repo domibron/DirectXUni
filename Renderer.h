@@ -54,7 +54,6 @@ public:
 	Renderer(Window& inWindow);
 	void Clean();
 	void RenderFrame();
-	void DrawSkybox();
 
 	ID3D11Device* GetDevice() { return dev; }
 	ID3D11DeviceContext* GetDeviceCon() { return devcon; }
@@ -73,26 +72,13 @@ public:
 
 	
 private:
-
-	
-
 	Window& window;
 	IDXGISwapChain* swapchain = nullptr;
 	ID3D11Device* dev = nullptr;
 	ID3D11DeviceContext* devcon = nullptr;
 	ID3D11RenderTargetView* backbuffer = nullptr;
 
-	ID3D11VertexShader* pVS = nullptr; // Vertex Shader
-	ID3D11PixelShader* pPS = nullptr; // Pixel Shader
-	ID3D11InputLayout* pIL = nullptr; // Input layout
-	
-	// sky box stuff
-	ID3D11VertexShader* pVSSkybox = nullptr;
-	ID3D11PixelShader* pPSSkybox = nullptr;
-	ID3D11InputLayout* pILSkybox = nullptr;
 
-	ID3D11Buffer* vBuffer = nullptr; // Vertex buffer
-	ID3D11Buffer* iBuffer = nullptr; // Index buffer
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
 	ID3D11Buffer* cBuffer_PerFrame = nullptr;
 	ID3D11Buffer* cBuffer_Lighting = nullptr; // Constant Buffer - for lighting
@@ -112,9 +98,9 @@ private:
 	DirectX::SpriteBatch* spriteBatch = nullptr;
 
 	long InitD3D();
-	long InitPipeline();
 	void InitGraphics();
 	long InitDepthBuffer();
+	void DrawSkybox();
 
 	void RenderText(const char* text, int x, int y);
 };

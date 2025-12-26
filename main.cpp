@@ -8,6 +8,7 @@
 #include "GameObject.h"
 #include <Mouse.h>
 #include "Texture.h"
+#include "Material.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -32,6 +33,7 @@ int WINAPI WinMain(
 	Texture tex_box{ renderer, "Assets/Box.bmp" };
 	Texture tex_grass{ renderer, "Assets/grass.png", true };
 	Texture tex_skybox{ renderer, "Assets/skybox01.dds", false, Texture::TextureType::Cubemap };
+	Material mat_unlit{ "Unlit", renderer, "Compiled Shaders/VertexShader.cso", "Compiled Shaders/PixelShader.cso", &tex_box };
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -42,12 +44,12 @@ int WINAPI WinMain(
 
 	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
 
-	GameObject go_skybox{ "Skybox", &mesh_cube, &tex_skybox };
+	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_unlit };
 	renderer.skyboxObject = &go_skybox;
 
-	GameObject go1{ "Cube", &mesh_cube, &tex_box };
-	GameObject go2{ "Sphere", &mesh_sphere, &tex_box };
-	GameObject go_grass{ "Grass", &mesh_grass, &tex_grass };
+	GameObject go1{ "Cube", &mesh_cube, &mat_unlit };
+	GameObject go2{ "Sphere", &mesh_sphere, &mat_unlit };
+	GameObject go_grass{ "Grass", &mesh_grass, &mat_unlit };
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
