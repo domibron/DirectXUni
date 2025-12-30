@@ -87,6 +87,7 @@ void Renderer::Clean()
 
 	if (backbuffer) backbuffer->Release();
 	if (swapchain) swapchain->Release();
+
 	if (dev) dev->Release();
 	if (devcon) devcon->Release();
 }
