@@ -15,12 +15,12 @@ struct PointLight
     float2 padding; // 8
 };
 
-cbuffer LightingData : register(b13)
-{
-    float4 ambientLightCol; // 16
-    DirectionalLight dirLight; // 32
-    PointLight pointLights[MAX_POINT_LIGHTS]; // 384 bytes
-}
+//cbuffer LightingData : register(b13)
+//{
+//    float4 ambientLightCol; // 16
+//    DirectionalLight dirLight; // 32
+//    PointLight pointLights[MAX_POINT_LIGHTS]; // 384 bytes
+//}
 
 float3 CalculateDirectionContribution(DirectionalLight light, float3 vNormal)
 {
@@ -62,7 +62,7 @@ float3 CalculateAllLighting(float3 amientColor, DirectionalLight light, PointLig
 float3 CalculateReflectionUVW(matrix World, float4 vertexPos, float3 vertexNorm, float3 cameraPos)
 {
     // Vertex position in world space
-    float3 wpos = mul(World, vertexNorm);
+    float3 wpos = mul(World, vertexPos);
     
     // Surface normal in world space
     float3 wnormal = normalize(mul(World, float4(vertexNorm, 0)));

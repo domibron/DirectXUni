@@ -2,10 +2,12 @@
 
 #pragma once
 
-#include "Transform.h" // You have directX using in this class FYI
+#include "Transform.h"
 #include "Camera.h"
 #include <vector>
 #include <SpriteFont.h>
+
+#include "Lighting.h"
 
 
 struct IDXGISwapChain;
@@ -32,20 +34,7 @@ class GameObject;
 
 class Texture;
 
-struct PointLight {
-	DirectX::XMVECTOR position{ 0,0,0 }; // 16 bytes
-	DirectX::XMVECTOR color{ 1,1,1 }; // 16 bytes
 
-	float strength = 10; // 4 bytes
-	bool enabled = false; // 4 bytes
-	float padding[2]; // 8 bytes
-	// 48 total bytes
-};
-
-struct DirectionalLight {
-	DirectX::XMVECTOR directionFrom{ 0,0,0 };
-	DirectX::XMVECTOR color{ 1,1,1 };
-};
 
 class Renderer
 {
@@ -81,7 +70,7 @@ private:
 
 	ID3D11Buffer* cBuffer_PerObject = nullptr; // Constant Buffer
 	ID3D11Buffer* cBuffer_PerFrame = nullptr;
-	ID3D11Buffer* cBuffer_Lighting = nullptr; // Constant Buffer - for lighting
+	//ID3D11Buffer* cBuffer_Lighting = nullptr; // Constant Buffer - for lighting
 
 	ID3D11DepthStencilView* depthBuffer = NULL;
 

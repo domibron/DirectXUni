@@ -40,11 +40,11 @@ struct CBuffer_PerObject {
 	// Single Instruction, Multiple Data
 };
 
-struct CBuffer_Lighting {
-	XMVECTOR ambientLightColor; // 16
-	DirectionalLight directionalLight; // 32
-	PointLight pointLights[MAX_POINT_LIGHTS]; // 48 * 8 = 384
-};
+//struct CBuffer_Lighting {
+//	XMVECTOR ambientLightColor; // 16
+//	DirectionalLight directionalLight; // 32
+//	PointLight pointLights[MAX_POINT_LIGHTS]; // 48 * 8 = 384
+//};
 
 struct CBuffer_PerFrame {
 	XMFLOAT3 cameraPos; // 12 bytes
@@ -72,7 +72,7 @@ void Renderer::Clean()
 
 	if (cBuffer_PerObject) cBuffer_PerObject->Release();
 	if (cBuffer_PerFrame) cBuffer_PerFrame->Release();
-	if (cBuffer_Lighting) cBuffer_Lighting->Release();
+	//if (cBuffer_Lighting) cBuffer_Lighting->Release();
 
 	//if (iBuffer) iBuffer->Release();
 	//if (vBuffer) vBuffer->Release();
@@ -314,12 +314,12 @@ void Renderer::InitGraphics()
 		return;
 	}
 
-	// Lighting CBuffer
-	cbd.ByteWidth = sizeof(CBuffer_Lighting);
-	if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_Lighting))) {
-		LOG("Oops, failed to creaate CBuffer_Lighting.");
-		return;
-	}
+	//// Lighting CBuffer
+	//cbd.ByteWidth = sizeof(CBuffer_Lighting);
+	//if (FAILED(dev->CreateBuffer(&cbd, NULL, &cBuffer_Lighting))) {
+	//	LOG("Oops, failed to creaate CBuffer_Lighting.");
+	//	return;
+	//}
 
 	// Setup raster states
 	D3D11_RASTERIZER_DESC rsDesc;

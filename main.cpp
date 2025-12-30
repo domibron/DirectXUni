@@ -9,6 +9,7 @@
 #include <Mouse.h>
 #include "Texture.h"
 #include "Material.h"
+#include "Material_Lit.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -34,6 +35,12 @@ int WINAPI WinMain(
 	Texture tex_grass{ renderer, "Assets/grass.png", true };
 	Texture tex_skybox{ renderer, "Assets/skybox01.dds", false, Texture::TextureType::Cubemap };
 	Material mat_unlit{ "Unlit", renderer, "Compiled Shaders/VertexShader.cso", "Compiled Shaders/PixelShader.cso", &tex_box };
+	Material mat_skybox{ "Skybox", renderer, "Compiled Shaders/SkyboxVShader.cso", "Compiled Shaders/SkyboxPShader.cso", &tex_skybox };
+	Material_Lit mat_lit{ "Lit", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_box };
+	mat_lit.SetReflectionTexture(&tex_skybox);
+	Material_Lit mat_litGrass{ "LitGrass", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_grass };
+	mat_lit.SetReflectionTexture(&tex_skybox);
+	mat_litGrass.reflectiveness = 0.01f;
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -44,12 +51,12 @@ int WINAPI WinMain(
 
 	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
 
-	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_unlit };
+	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_skybox };
 	renderer.skyboxObject = &go_skybox;
 
-	GameObject go1{ "Cube", &mesh_cube, &mat_unlit };
-	GameObject go2{ "Sphere", &mesh_sphere, &mat_unlit };
-	GameObject go_grass{ "Grass", &mesh_grass, &mat_unlit };
+	GameObject go1{ "Cube", &mesh_cube, &mat_lit };
+	GameObject go2{ "Sphere", &mesh_sphere, &mat_lit };
+	GameObject go_grass{ "Grass", &mesh_grass, &mat_litGrass };
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
@@ -57,6 +64,7 @@ int WINAPI WinMain(
 
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
 	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
+	go_grass.transform.position = DirectX::XMVectorSet(-5, -0.5f, 0, 1);
 
 	renderer.pointLights[0] = { XMVECTOR{-1, 1, -3}, {0.85f, 0, 0.85f}, 10, true };
 	renderer.pointLights[1] = { XMVECTOR{1, -1, -4}, {0, 0.85f, 0.85f}, 20, true };

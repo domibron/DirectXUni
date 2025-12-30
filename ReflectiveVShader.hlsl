@@ -9,6 +9,13 @@ struct VOut
     float3 uvw : TEXCOORD1;
 };
 
+cbuffer LightingData// : register(b13)
+{
+    float4 ambientLightCol; // 16
+    DirectionalLight dirLight; // 32
+    PointLight pointLights[MAX_POINT_LIGHTS]; // 384 bytes
+}
+
 VOut main(VIn input)
 {
     VOut output;
