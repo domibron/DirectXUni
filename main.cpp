@@ -123,7 +123,7 @@ int WINAPI WinMain(
 			renderer.RenderFrame();
 
 			
-			
+			// we tick after becuse we need to 
 			timeKeeping.Tick();
 		}
 	}
