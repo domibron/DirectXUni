@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Material_Lit.h"
+#include "TimeKeeping.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -27,6 +28,7 @@ int WINAPI WinMain(
 	Window window{ 800, 600, hInstance, nCmdShow };
 	Renderer renderer{ window };
 
+	TimeKeeping timeKeeping;
 
 	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
@@ -119,6 +121,10 @@ int WINAPI WinMain(
 				renderer.camera.transform.position = { 0, 0, -5 };
 
 			renderer.RenderFrame();
+
+			
+			
+			timeKeeping.Tick();
 		}
 	}
 
