@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "Material_Lit.h"
 #include "TimeKeeping.h"
+#include "ChunkData.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -31,6 +32,7 @@ int WINAPI WinMain(
 	TimeKeeping timeKeeping;
 
 	Mesh mesh_cube{ renderer, "Assets/cube.obj" };
+	Mesh mesh_block{ renderer, "Assets/block.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
 	Mesh mesh_grass{ renderer, "Assets/grass.obj", true };
 	Texture tex_box{ renderer, "Assets/Box.bmp" };
@@ -43,6 +45,8 @@ int WINAPI WinMain(
 	Material_Lit mat_litGrass{ "LitGrass", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_grass };
 	mat_lit.SetReflectionTexture(&tex_skybox);
 	mat_litGrass.reflectiveness = 0.01f;
+
+	
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -58,14 +62,20 @@ int WINAPI WinMain(
 
 	GameObject go1{ "Cube", &mesh_cube, &mat_lit };
 	GameObject go2{ "Sphere", &mesh_sphere, &mat_lit };
+	//GameObject go3{ "Block", &mesh_block, &mat_lit };
 	GameObject go_grass{ "Grass", &mesh_grass, &mat_litGrass };
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
+	//renderer.RegisterGameObject(&go3);
 	renderer.RegisterGameObject(&go_grass);
+
+	ChunkData chunk{ &renderer, XMVectorSet(0,0,0,0), &mesh_block, &mat_lit };
+	chunk.LoadChunk();
 
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
 	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
+	//go3.transform.position = DirectX::XMVectorSet(-4, 0, 0, 1);
 	go_grass.transform.position = DirectX::XMVectorSet(-5, -0.5f, 0, 1);
 
 	renderer.pointLights[0] = { XMVECTOR{-1, 1, -3}, {0.85f, 0, 0.85f}, 10, true };
@@ -100,19 +110,19 @@ int WINAPI WinMain(
 			auto kbState = DirectX::Keyboard::Get().GetState();
 
 			if (kbState.S) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * -0.001f);
+				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * -10.0f * timeKeeping.GetDeltaTime());
 			}
 
 			if (kbState.W) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * 0.001f);
+				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * 10.0f * timeKeeping.GetDeltaTime());
 			}
 
 			if (kbState.A) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * -0.001f);
+				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * -10.0f * timeKeeping.GetDeltaTime());
 			}
 
 			if (kbState.D) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * 0.001f);
+				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * 10.0f * timeKeeping.GetDeltaTime());
 			}
 
 			auto msState = DirectX::Mouse::Get().GetState();

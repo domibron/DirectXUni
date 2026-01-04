@@ -120,6 +120,7 @@ void Renderer::RenderFrame()
 
 	for (auto go : gameObjects) {
 	
+		
 		// Transform
 		XMMATRIX world = go->transform.GetWorldMatrix();
 		cBufferPerObjectData.World = world;
