@@ -131,6 +131,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AABBCollider.cpp" />
+    <ClCompile Include="BlockMesh.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChunkData.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -147,6 +149,8 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AABBCollider.h" />
+    <ClInclude Include="BlockMesh.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChunkData.h" />
     <ClInclude Include="Debug.h" />

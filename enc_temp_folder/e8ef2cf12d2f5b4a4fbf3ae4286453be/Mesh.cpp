@@ -66,5 +66,8 @@ void Mesh::Render() // we need to adjust the rendering for face culling
 	devcon->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
 	devcon->IASetIndexBuffer(iBuffer, DXGI_FORMAT_R32_UINT, 0);
 
+	if (isDoubleSideded)
+	devcon->DrawIndexed(2, 0, 0);
+	else
 	devcon->DrawIndexed(indexCount, 0, 0);
 }
