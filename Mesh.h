@@ -10,7 +10,7 @@ class Renderer;
 
 class Mesh
 {
-private:
+protected:
 	ID3D11Device* dev;
 	ID3D11DeviceContext* devcon;
 	ID3D11Buffer* vBuffer = NULL; // Vertex Buffer
@@ -20,7 +20,10 @@ private:
 
 public:
 	Mesh(Renderer& renderer, std::string objPath, bool doubleSided = false);
-	void Render();
+	~Mesh();
+
 	bool isDoubleSideded = false;
+
+	virtual void Render();
 };
 

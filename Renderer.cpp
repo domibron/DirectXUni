@@ -137,7 +137,7 @@ void Renderer::RenderFrame()
 
 		go->material->UpdateMaterial(go);
 		go->material->Bind();
-		go->mesh->Render();
+		go->RenderObject();
 	}
 
 	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and

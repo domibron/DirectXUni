@@ -4,6 +4,7 @@
 #include "Mesh.h"
 #include "Renderer.h" // Oh god.
 #include "memory.h"
+#include "BlockObject.h"
 
 //void ChunkData::AddBlockToChunk(GameObject* block)
 //{
@@ -24,20 +25,52 @@ void ChunkData::LoadChunk()
 {
 	//if (blocksInChunk.size() <= 0) return;
 
-	for (int i = 0; i < blocksInChunk.size(); i++) {
-		renderer->RegisterGameObject(blocksInChunk[i].get());
+	for (auto& pair : blocksInChunk) {
+		renderer->RegisterGameObject(pair.second.get());
 	}
+
+	//for (int i = 0; i < blocksInChunk.size(); i++) {
+	//	renderer->RegisterGameObject(blocksInChunk[i].get());
+	//}
 
 }
 
 void ChunkData::UnloadChunk()
 {
-	for (int i = 0; i < blocksInChunk.size(); i++) {
-		renderer->RemoveGameObject(blocksInChunk[i].get());
+	for (auto& pair : blocksInChunk) {
+		renderer->RemoveGameObject(pair.second.get());
 	}
+
+	//for (int i = 0; i < blocksInChunk.size(); i++) {
+	//	renderer->RemoveGameObject(blocksInChunk[i].get());
+	//}
 }
 
-ChunkData::ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, Mesh* blockMesh, Material* material)
+bool ChunkData::BlockOcupyingChunkPos(DirectX::XMVECTOR position)
+{
+	using namespace DirectX;
+
+	if (XMVectorGetX(position) < 0 || XMVectorGetX(position) >= WIDTH) {
+		return false; // we need to check adjacent chunks.
+	}
+	if (XMVectorGetZ(position) < 0 || XMVectorGetZ(position) >= DEPTH) {
+		return false; // we need to check adjacent chunks.
+	}
+
+	if (XMVectorGetY(position) < 0 || XMVectorGetY(position) >= height) {
+		return false; // we need to check adjacent chunks.
+	}
+
+	auto key = blocksInChunk.find(BlockPosition{ XMVectorGetX(position), XMVectorGetY(position), XMVectorGetZ(position) });
+	if (key == blocksInChunk.end())
+	{
+		return false;
+	}
+
+	return true; // we dont need to iterate, just know the key exsists.
+}
+
+ChunkData::ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* material)
 	: renderer(renderer)
 {
 	// we shall bullshit the gerator for now
@@ -45,21 +78,47 @@ ChunkData::ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, Mesh* 
 
 	using namespace DirectX;
 
-	XMVECTOR targetPos = XMVectorSet(0,0,0,0);
+	XMVECTOR targetPos = XMVectorSet(0,0,0,1);
 
 	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++) {
-			for (int z = 0; z < depth; z++) {
+		for (int x = 0; x < WIDTH; x++) {
+			for (int z = 0; z < DEPTH; z++) {
 
 				
-				GameObject newBlock{ "Block", blockMesh, material };
-				targetPos = XMVectorSet(x, y, z, 0) + chunkTransform.position;
+				BlockObject newBlock{ "Block", blockMesh, material };
+				targetPos = XMVectorSet(x, y, z, 1) + chunkTransform.position;
+
+				BlockPosition posInChunk{ x, y, z };
 				
 				newBlock.transform.position = targetPos;
 				//GameObject temp("Block", blockMesh, material);
-				blocksInChunk.push_back(std::make_unique<GameObject>(newBlock));
+				blocksInChunk.try_emplace(posInChunk, std::make_unique<BlockObject>(newBlock));
+				//blocksInChunk.push_back(std::make_unique<GameObject>(newBlock));
 
 			}
 		}
+	}
+
+
+	for (auto& pair : blocksInChunk) {
+
+		BlockPosition pos = pair.first;
+		XMVECTOR vectorPos = XMVectorSet(pos.x, pos.y, pos.z, 1);
+
+		BlockObject* blockPtr = pair.second.get();
+
+		bool showBackFace, showTopFace, showFrontFace, showBottomFace, showRightFace, showLeftFace;
+
+		XMVECTOR res = vectorPos + XMVectorSet(0, 0, 1, 0);
+
+
+		showBackFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    0,    1.0f, 0));
+		showFrontFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    0,   -1.0f, 0));
+		showBottomFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,   -1.0f, 0,    0));
+		showTopFace		=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    1.0f, 0,    0));
+		showLeftFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet(-1.0f, 0,    0,    0));
+		showRightFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 1.0f, 0,    0,    0));
+
+		blockPtr->SetBlockRenderFaces(showBackFace, showTopFace, showFrontFace, showBottomFace, showRightFace, showLeftFace);
 	}
 }

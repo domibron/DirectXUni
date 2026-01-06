@@ -54,6 +54,12 @@ Mesh::Mesh(Renderer& renderer, std::string objPath, bool doubleSided)
 	}
 }
 
+Mesh::~Mesh()
+{
+	if (iBuffer) iBuffer->Release();
+	if (vBuffer) vBuffer->Release();
+}
+
 
 void Mesh::Render() // we need to adjust the rendering for face culling
 {

@@ -11,7 +11,7 @@ class Material;
 
 class GameObject
 {
-private:
+protected:
 	std::string name = "GameObject";
 
 public:
@@ -25,5 +25,7 @@ public:
 	std::string GetName() { return name; }
 
 	GameObject(std::string objectName, Mesh* objectMesh, Material* material);
+
+	virtual void RenderObject();
 };
 

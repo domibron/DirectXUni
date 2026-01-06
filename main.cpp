@@ -12,6 +12,8 @@
 #include "Material_Lit.h"
 #include "TimeKeeping.h"
 #include "ChunkData.h"
+#include "BlockMesh.h"
+#include "BlockObject.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -42,9 +44,12 @@ int WINAPI WinMain(
 	Material mat_skybox{ "Skybox", renderer, "Compiled Shaders/SkyboxVShader.cso", "Compiled Shaders/SkyboxPShader.cso", &tex_skybox };
 	Material_Lit mat_lit{ "Lit", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_box };
 	mat_lit.SetReflectionTexture(&tex_skybox);
+	mat_lit.reflectiveness = 0.001f;
 	Material_Lit mat_litGrass{ "LitGrass", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_grass };
 	mat_lit.SetReflectionTexture(&tex_skybox);
 	mat_litGrass.reflectiveness = 0.01f;
+
+	BlockMesh bm_block{ renderer };
 
 	
 
@@ -62,15 +67,14 @@ int WINAPI WinMain(
 
 	GameObject go1{ "Cube", &mesh_cube, &mat_lit };
 	GameObject go2{ "Sphere", &mesh_sphere, &mat_lit };
-	//GameObject go3{ "Block", &mesh_block, &mat_lit };
 	GameObject go_grass{ "Grass", &mesh_grass, &mat_litGrass };
+
 
 	renderer.RegisterGameObject(&go1);
 	renderer.RegisterGameObject(&go2);
-	//renderer.RegisterGameObject(&go3);
 	renderer.RegisterGameObject(&go_grass);
 
-	ChunkData chunk{ &renderer, XMVectorSet(0,0,0,0), &mesh_block, &mat_lit };
+	ChunkData chunk{ &renderer, XMVectorSet(0,0,0,1), &bm_block, &mat_lit };
 	chunk.LoadChunk();
 
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
