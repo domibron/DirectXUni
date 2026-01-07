@@ -16,6 +16,7 @@ class BlockObject;
 class Mesh;
 class Material;
 class BlockMesh;
+class PhysicsHanderler;
 
 
 class ChunkData
@@ -42,6 +43,7 @@ private:
 
 	int height = 3;
 	Renderer* renderer;
+	PhysicsHanderler* pHanderler;
 
 	Transform chunkTransform;
 
@@ -57,6 +59,6 @@ public:
 	bool BlockOcupyingChunkPos(DirectX::XMVECTOR position);
 
 	//std::vector<std::unique_ptr<GameObject>> blocksInChunk;
-	ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* mat);
+	ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler, DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* mat);
 };
 

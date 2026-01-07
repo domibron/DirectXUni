@@ -5,6 +5,7 @@
 #include "Renderer.h" // Oh god.
 #include "memory.h"
 #include "BlockObject.h"
+#include "PhysicsHanderler.h"
 
 //void ChunkData::AddBlockToChunk(GameObject* block)
 //{
@@ -70,8 +71,8 @@ bool ChunkData::BlockOcupyingChunkPos(DirectX::XMVECTOR position)
 	return true; // we dont need to iterate, just know the key exsists.
 }
 
-ChunkData::ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* material)
-	: renderer(renderer)
+ChunkData::ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler , DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* material)
+	: renderer(renderer), pHanderler(physicsHanderler)
 {
 	// we shall bullshit the gerator for now
 	chunkTransform.position = chunkPosition;
@@ -101,6 +102,11 @@ ChunkData::ChunkData(Renderer* renderer, DirectX::XMVECTOR chunkPosition, BlockM
 
 
 	for (auto& pair : blocksInChunk) {
+
+		// add teh blocks to physisc.
+		pHanderler->RegisterStaticBody(pair.second.get());
+
+		// toggle which faces are visible.
 
 		BlockPosition pos = pair.first;
 		XMVECTOR vectorPos = XMVectorSet(pos.x, pos.y, pos.z, 1);

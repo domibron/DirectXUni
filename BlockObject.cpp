@@ -5,7 +5,7 @@
 #include "Transform.h"
 
 BlockObject::BlockObject(std::string objectName, BlockMesh* objectMesh, Material* material)
-	: GameObject(objectName, (Mesh*)objectMesh, material), blockMesh(objectMesh), AABBCollider(&transform,1,1,1,0.5f,0.5f,0.5f) // urm bad shit, collider should not have TRANSFORM!!!!
+	: GameObject(objectName, (Mesh*)objectMesh, material), blockMesh(objectMesh), AABBCollider(&transform,1,1,1,0.5f,0.5f,0.0f) // urm bad shit, collider should not have TRANSFORM!!!!
 {
 
 }

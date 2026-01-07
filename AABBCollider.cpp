@@ -68,17 +68,18 @@ bool AABBCollider::CheckForCollision( AABBData secondObject, DirectX::XMVECTOR s
 
 	bool xCollide = false, yCollide = false, zCollide = false;
 
-	if (fxMax > sxMin || fxMin < sxMax) {
+	// possible failure of collison if fist min is less than second min and first max is greater than second max.
+	if ((fxMax > sxMin && fxMax < sxMax) || (fxMin < sxMax && fxMin > sxMin)) {
 		xCollide = true;
 	}
 	else return false;
 
-	if (fyMax > syMin || fyMin < syMax) {
+	if ((fyMax > syMin && fyMax < syMax) || (fyMin < syMax && fyMin > syMin)) {
 		yCollide = true;
 	}
 	else return false;
 
-	if (fzMax > szMin || fzMin < szMax) {
+	if ((fzMax > szMin && fzMax < szMax) || (fzMin < szMax && fzMin > szMin)) {
 		zCollide = true;
 	}
 	else return false;
@@ -90,8 +91,7 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX
 {
 	DirectX::XMVECTOR firstObjectPosition = boxTrans->position;
 
-	// we presume we are colliding, its is on the hands of the other systems to make sure we collided.
-
+	
 	// a lost of assigning things, we ball with memory.
 	// Get the xyz pos of the first object's transform.
 	float fXPos = DirectX::XMVectorGetX(firstObjectPosition);
@@ -131,30 +131,36 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX
 
 	float x, y, z;
 
-	if (fxMax > sxMin) {
+	if (fxMax > sxMin && fxMax < sxMax ) {
+		//x = sxMin - fxMax;
 		x = fxMax - sxMin;
 	}
-	else if (fxMin < sxMax) {
+	else if (fxMin < sxMax && fxMin > sxMin) {
+		//x = sxMax - fxMin;
 		x = fxMin - sxMax;
 	}
 	else {
 		x = 0;
 	}
 
-	if (fyMax > syMin) {
+	if (fyMax > syMin && fyMax < syMax) {
+		//y = syMin - fyMax;
 		y = fyMax - syMin;
 	}
-	else if (fyMin < syMax) {
+	else if (fyMin < syMax && fyMin > syMin) {
+		//y = syMax - fyMin;
 		y = fyMin - syMax;
 	}
 	else {
 		y = 0;
 	}
 
-	if (fzMax > szMin) {
+	if (fzMax > szMin && fzMax < szMax) {
+		//z = szMin - fzMax;
 		z = fzMax - szMin;
 	}
-	else if (fzMin < szMax) {
+	else if (fzMin < szMax && fzMin > szMin) {
+		//z = szMax - fzMin;
 		z = fzMin - szMax;
 	}
 	else {
@@ -162,4 +168,76 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX
 	}
 
 	return DirectX::XMVectorSet(x, y, z, 0);
+}
+
+DirectX::XMVECTOR AABBCollider::WhichSideIsFistCollision(AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
+{
+	DirectX::XMVECTOR firstObjectPosition = boxTrans->position;
+
+
+	// a lost of assigning things, we ball with memory.
+	// Get the xyz pos of the first object's transform.
+	float fXPos = DirectX::XMVectorGetX(firstObjectPosition);
+	float fYPos = DirectX::XMVectorGetY(firstObjectPosition);
+	float fZPos = DirectX::XMVectorGetZ(firstObjectPosition);
+
+	// Get the xyz pos of the second object's transform.
+	float sXPos = DirectX::XMVectorGetX(secondObjectPos);
+	float sYPos = DirectX::XMVectorGetY(secondObjectPos);
+	float sZPos = DirectX::XMVectorGetZ(secondObjectPos);
+
+	// Get the collider's world space pos for the first object.
+	float offsetInWorldFX = colliderData.xPos + fXPos;
+	float offsetInWorldFY = colliderData.yPos + fYPos;
+	float offsetInWorldFZ = colliderData.zPos + fZPos;
+
+	// Get the collider's world space pos for the second object.
+	float offsetInWorldSX = secondObject.xPos + sXPos;
+	float offsetInWorldSY = secondObject.yPos + sYPos;
+	float offsetInWorldSZ = secondObject.zPos + sZPos;
+
+	//// get the bounds of the first object.
+	//float fxMin = offsetInWorldFX - (colliderData.xSize / 2.0f);
+	//float fxMax = offsetInWorldFX + (colliderData.xSize / 2.0f);
+	//float fyMin = offsetInWorldFY - (colliderData.ySize / 2.0f);
+	//float fyMax = offsetInWorldFY + (colliderData.ySize / 2.0f);
+	//float fzMin = offsetInWorldFZ - (colliderData.zSize / 2.0f);
+	//float fzMax = offsetInWorldFZ + (colliderData.zSize / 2.0f);
+
+	//// get the bounds of the second object.
+	//float sxMin = offsetInWorldSX - (secondObject.xSize / 2.0f);
+	//float sxMax = offsetInWorldSX + (secondObject.xSize / 2.0f);
+	//float syMin = offsetInWorldSY - (secondObject.ySize / 2.0f);
+	//float syMax = offsetInWorldSY + (secondObject.ySize / 2.0f);
+	//float szMin = offsetInWorldSZ - (secondObject.zSize / 2.0f);
+	//float szMax = offsetInWorldSZ + (secondObject.zSize / 2.0f);
+
+	//float x = 0 , y = 0, z = 0;
+
+	DirectX::XMVECTOR CollisionDir = DirectX::XMVectorSet(offsetInWorldSX - offsetInWorldFX, offsetInWorldSY - offsetInWorldFY, offsetInWorldSZ - offsetInWorldFZ, 0);
+	//CollisionDir = DirectX::XMVector3Normalize(CollisionDir);
+
+	bool posX = DirectX::XMVectorGetX(CollisionDir) >= 0;
+	float xDotRes = (posX ? DotProduct(CollisionDir, DirectX::XMVectorSet(1.0f, 0, 0, 0)) : DotProduct(CollisionDir, DirectX::XMVectorSet(1.0f,0, 0, 0)));
+
+	bool posY = DirectX::XMVectorGetY(CollisionDir) >= 0;
+	float yDotRes = (posY ? DotProduct(CollisionDir, DirectX::XMVectorSet(0, 1.0f, 0, 0)) : DotProduct(CollisionDir, DirectX::XMVectorSet(0, -1.0f, 0, 0)));
+
+	bool posZ = DirectX::XMVectorGetZ(CollisionDir) >= 0;
+	float zDotRes = (posZ ? DotProduct(CollisionDir, DirectX::XMVectorSet(0, 0, 1.0f, 0)) : DotProduct(CollisionDir, DirectX::XMVectorSet(0, 0, -1.0f, 0)));
+
+
+	if (xDotRes > yDotRes && xDotRes > zDotRes) {
+		return DirectX::XMVectorSet((posX ? 1.0f: -1.0f), 0, 0, 0);
+	}
+	else if (yDotRes > zDotRes) {
+		return DirectX::XMVectorSet(0, (posY ? 1.0f : -1.0f), 0, 0);
+	}
+	else {
+		return DirectX::XMVectorSet(0, 0, (posZ ? 1.0f : -1.0f), 0);
+	}
+}
+
+float AABBCollider::DotProduct(DirectX::XMVECTOR a, DirectX::XMVECTOR b) {
+	return (DirectX::XMVectorGetX(a) * DirectX::XMVectorGetX(b)) + (DirectX::XMVectorGetY(a) * DirectX::XMVectorGetY(b)) + (DirectX::XMVectorGetZ(a) * DirectX::XMVectorGetZ(b));
 }

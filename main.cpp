@@ -58,6 +58,7 @@ int WINAPI WinMain(
 	
 	PlayerEntity player;
 	renderer.camera = player.GetCamera();
+	player.transform.position = { 8, 6, 8 };
 
 	pHanderler.RegisterRigidBody(&player);
 
@@ -67,8 +68,8 @@ int WINAPI WinMain(
 	class which overrides the Update function to rotate itself. You then just call the Update function on all GameObjects every
 	frame.
 	*/
-	if (renderer.camera != nullptr)
-	renderer.camera->camTransform->position = DirectX::XMVectorSetZ(renderer.camera->camTransform->position, -1);
+	//if (renderer.camera != nullptr)
+	//renderer.camera->camTransform->position = DirectX::XMVectorSetZ(renderer.camera->camTransform->position, -1);
 
 	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_skybox };
 	renderer.skyboxObject = &go_skybox;
@@ -82,7 +83,7 @@ int WINAPI WinMain(
 	renderer.RegisterGameObject(&go2);
 	renderer.RegisterGameObject(&go_grass);
 
-	ChunkData chunk{ &renderer, XMVectorSet(0,0,0,1), &bm_block, &mat_lit };
+	ChunkData chunk{ &renderer, &pHanderler, XMVectorSet(0,0,0,1), &bm_block, &mat_lit};
 	chunk.LoadChunk();
 
 	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
@@ -124,25 +125,31 @@ int WINAPI WinMain(
 			if (renderer.camera != nullptr) {
 
 				if (kbState.S) {
-					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
+					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
 				}
 
 				if (kbState.W) {
-					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
+					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
 				}
 
 				if (kbState.A) {
-					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
+					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
+
 				}
 
 				if (kbState.D) {
-					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
+					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
+
 				}
 
 				auto msState = DirectX::Mouse::Get().GetState();
-				renderer.camera->camTransform->Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
+				player.transform.Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
 				if (msState.leftButton)
-					renderer.camera->camTransform->position = { 0, 0, -5 };
+					player.transform.position = { 8, 6, 8 };
 			}
 
 			pHanderler.TickPhysics();

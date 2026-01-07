@@ -20,7 +20,13 @@ public:
 
 	virtual void TickThisRigidBodyPhysics(float deltaTime); // move the object forward so we can then check for collisions.
 
+	DirectX::XMVECTOR GetVelocity() { return velocity; };
+
+
 	void SetVelocity(DirectX::XMVECTOR newVelocity);
+	void SetVelocityX(float x);
+	void SetVelocityY(float y);
+	void SetVelocityZ(float z);
 	void AddToVelocity(DirectX::XMVECTOR velocityToAdd);
 	
 };
