@@ -48,7 +48,7 @@ public:
 	ID3D11DeviceContext* GetDeviceCon() { return devcon; }
 
 
-	Camera camera;
+	Camera* camera;
 	std::vector<GameObject*> gameObjects;
 	GameObject* skyboxObject = nullptr;
 

@@ -1,7 +1,9 @@
 #include "AABBCollider.h"
 
+#include "Transform.h"
 
-AABBCollider::AABBCollider(float xSize, float ySize, float zSize, float xPos, float yPos, float zPos)
+AABBCollider::AABBCollider(Transform* transform, float xSize, float ySize, float zSize, float xPos, float yPos, float zPos)
+	:boxTrans(transform)
 {
 	colliderData.xSize = xSize;
 	colliderData.ySize = ySize;
@@ -11,7 +13,8 @@ AABBCollider::AABBCollider(float xSize, float ySize, float zSize, float xPos, fl
 	colliderData.zPos = zPos;
 }
 
-AABBCollider::AABBCollider(AABBData data)
+AABBCollider::AABBCollider(Transform* transform, AABBData data)
+	:boxTrans(transform)
 {
 	// needs testing but the reason why im not doing colliderData = data is im unsure if it copies the address rather than fill it with the data.
 	colliderData.xSize = data.xSize;
@@ -22,8 +25,10 @@ AABBCollider::AABBCollider(AABBData data)
 	colliderData.zPos = data.zPos;
 }
 
-bool AABBCollider::CheckForCollision(AABBData firstObject, DirectX::XMVECTOR firstObjectPosition, AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
+bool AABBCollider::CheckForCollision( AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
 {
+	DirectX::XMVECTOR firstObjectPosition = boxTrans->position;
+
 	// a lost of assigning things, we ball with memory.
 	// Get the xyz pos of the first object's transform.
 	float fXPos = DirectX::XMVectorGetX(firstObjectPosition);
@@ -36,9 +41,9 @@ bool AABBCollider::CheckForCollision(AABBData firstObject, DirectX::XMVECTOR fir
 	float sZPos = DirectX::XMVectorGetZ(secondObjectPos);
 
 	// Get the collider's world space pos for the first object.
-	float offsetInWorldFX = firstObject.xPos + fXPos;
-	float offsetInWorldFY = firstObject.yPos + fYPos;
-	float offsetInWorldFZ = firstObject.zPos + fZPos;
+	float offsetInWorldFX = colliderData.xPos + fXPos;
+	float offsetInWorldFY = colliderData.yPos + fYPos;
+	float offsetInWorldFZ = colliderData.zPos + fZPos;
 
 	// Get the collider's world space pos for the second object.
 	float offsetInWorldSX = secondObject.xPos + sXPos;
@@ -46,12 +51,12 @@ bool AABBCollider::CheckForCollision(AABBData firstObject, DirectX::XMVECTOR fir
 	float offsetInWorldSZ = secondObject.zPos + sZPos;
 
 	// get the bounds of the first object.
-	float fxMin = offsetInWorldFX - (firstObject.xSize / 2.0f);
-	float fxMax = offsetInWorldFX + (firstObject.xSize / 2.0f);
-	float fyMin = offsetInWorldFY - (firstObject.ySize / 2.0f);
-	float fyMax = offsetInWorldFY + (firstObject.ySize / 2.0f);
-	float fzMin = offsetInWorldFZ - (firstObject.zSize / 2.0f);
-	float fzMax = offsetInWorldFZ + (firstObject.zSize / 2.0f);
+	float fxMin = offsetInWorldFX - (colliderData.xSize / 2.0f);
+	float fxMax = offsetInWorldFX + (colliderData.xSize / 2.0f);
+	float fyMin = offsetInWorldFY - (colliderData.ySize / 2.0f);
+	float fyMax = offsetInWorldFY + (colliderData.ySize / 2.0f);
+	float fzMin = offsetInWorldFZ - (colliderData.zSize / 2.0f);
+	float fzMax = offsetInWorldFZ + (colliderData.zSize / 2.0f);
 
 	// get the bounds of the second object.
 	float sxMin = offsetInWorldSX - (secondObject.xSize / 2.0f);
@@ -81,8 +86,10 @@ bool AABBCollider::CheckForCollision(AABBData firstObject, DirectX::XMVECTOR fir
 	return true; // a collision has taken place.
 }
 
-DirectX::XMVECTOR AABBCollider::GetOverlapAmount(AABBData firstObject, DirectX::XMVECTOR firstObjectPosition, AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
+DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
 {
+	DirectX::XMVECTOR firstObjectPosition = boxTrans->position;
+
 	// we presume we are colliding, its is on the hands of the other systems to make sure we collided.
 
 	// a lost of assigning things, we ball with memory.
@@ -97,9 +104,9 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount(AABBData firstObject, DirectX::
 	float sZPos = DirectX::XMVectorGetZ(secondObjectPos);
 
 	// Get the collider's world space pos for the first object.
-	float offsetInWorldFX = firstObject.xPos + fXPos;
-	float offsetInWorldFY = firstObject.yPos + fYPos;
-	float offsetInWorldFZ = firstObject.zPos + fZPos;
+	float offsetInWorldFX = colliderData.xPos + fXPos;
+	float offsetInWorldFY = colliderData.yPos + fYPos;
+	float offsetInWorldFZ = colliderData.zPos + fZPos;
 
 	// Get the collider's world space pos for the second object.
 	float offsetInWorldSX = secondObject.xPos + sXPos;
@@ -107,12 +114,12 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount(AABBData firstObject, DirectX::
 	float offsetInWorldSZ = secondObject.zPos + sZPos;
 
 	// get the bounds of the first object.
-	float fxMin = offsetInWorldFX - (firstObject.xSize / 2.0f);
-	float fxMax = offsetInWorldFX + (firstObject.xSize / 2.0f);
-	float fyMin = offsetInWorldFY - (firstObject.ySize / 2.0f);
-	float fyMax = offsetInWorldFY + (firstObject.ySize / 2.0f);
-	float fzMin = offsetInWorldFZ - (firstObject.zSize / 2.0f);
-	float fzMax = offsetInWorldFZ + (firstObject.zSize / 2.0f);
+	float fxMin = offsetInWorldFX - (colliderData.xSize / 2.0f);
+	float fxMax = offsetInWorldFX + (colliderData.xSize / 2.0f);
+	float fyMin = offsetInWorldFY - (colliderData.ySize / 2.0f);
+	float fyMax = offsetInWorldFY + (colliderData.ySize / 2.0f);
+	float fzMin = offsetInWorldFZ - (colliderData.zSize / 2.0f);
+	float fzMax = offsetInWorldFZ + (colliderData.zSize / 2.0f);
 
 	// get the bounds of the second object.
 	float sxMin = offsetInWorldSX - (secondObject.xSize / 2.0f);

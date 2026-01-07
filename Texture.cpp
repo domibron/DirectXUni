@@ -27,8 +27,6 @@ Texture::Texture(Renderer& renderer, std::string path, bool transparent, Texture
 		break;
 	}
 
-	//DirectX::CreateWICTextureFromFile(dev, devcon, filepath.c_str(), NULL, &texture);
-
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
 	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINER;

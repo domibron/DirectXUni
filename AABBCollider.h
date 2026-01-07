@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 
+class Transform;
+
 //struct XMVECTOR;
 
 struct AABBData {
@@ -14,13 +16,16 @@ class AABBCollider
 {
 private:
 	AABBData colliderData;
+	Transform* boxTrans;
 
 public:
-	AABBCollider(float xSize, float ySize, float zSize, float xPos, float yPos, float zPos);
-	AABBCollider(AABBData data);
+	AABBData GetBounds() { return colliderData; }
 
-	static bool CheckForCollision(AABBData firstObject, DirectX::XMVECTOR firstObjectPosition, AABBData secondObject, DirectX::XMVECTOR secondObjectPos);
+	AABBCollider(Transform* transform, float xSize, float ySize, float zSize, float xPos, float yPos, float zPos);
+	AABBCollider(Transform* transform, AABBData data);
+
+	bool CheckForCollision(AABBData secondObject, DirectX::XMVECTOR secondObjectPos);
 	// Checks to see how much the objects are overlapping, how much the second object is intersecting the first. (how much to move the first object to avoid the collision)
-	static DirectX::XMVECTOR GetOverlapAmount(AABBData firstObject, DirectX::XMVECTOR firstObjectPosition, AABBData secondObject, DirectX::XMVECTOR secondObjectPos);
+	DirectX::XMVECTOR GetOverlapAmount(AABBData secondObject, DirectX::XMVECTOR secondObjectPos);
 };
 

@@ -14,6 +14,8 @@
 #include "ChunkData.h"
 #include "BlockMesh.h"
 #include "BlockObject.h"
+#include "PhysicsHanderler.h"
+#include "PlayerEntity.h"
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
@@ -51,7 +53,13 @@ int WINAPI WinMain(
 
 	BlockMesh bm_block{ renderer };
 
+
+	PhysicsHanderler pHanderler{&timeKeeping};
 	
+	PlayerEntity player;
+	renderer.camera = player.GetCamera();
+
+	pHanderler.RegisterRigidBody(&player);
 
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
@@ -59,8 +67,8 @@ int WINAPI WinMain(
 	class which overrides the Update function to rotate itself. You then just call the Update function on all GameObjects every
 	frame.
 	*/
-
-	renderer.camera.transform.position = DirectX::XMVectorSetZ(renderer.camera.transform.position, -1);
+	if (renderer.camera != nullptr)
+	renderer.camera->camTransform->position = DirectX::XMVectorSetZ(renderer.camera->camTransform->position, -1);
 
 	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_skybox };
 	renderer.skyboxObject = &go_skybox;
@@ -113,26 +121,31 @@ int WINAPI WinMain(
 
 			auto kbState = DirectX::Keyboard::Get().GetState();
 
-			if (kbState.S) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * -10.0f * timeKeeping.GetDeltaTime());
+			if (renderer.camera != nullptr) {
+
+				if (kbState.S) {
+					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
+				}
+
+				if (kbState.W) {
+					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
+				}
+
+				if (kbState.A) {
+					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
+				}
+
+				if (kbState.D) {
+					renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
+				}
+
+				auto msState = DirectX::Mouse::Get().GetState();
+				renderer.camera->camTransform->Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
+				if (msState.leftButton)
+					renderer.camera->camTransform->position = { 0, 0, -5 };
 			}
 
-			if (kbState.W) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetForward() * 10.0f * timeKeeping.GetDeltaTime());
-			}
-
-			if (kbState.A) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * -10.0f * timeKeeping.GetDeltaTime());
-			}
-
-			if (kbState.D) {
-				renderer.camera.transform.Translate(renderer.camera.transform.GetRight() * 10.0f * timeKeeping.GetDeltaTime());
-			}
-
-			auto msState = DirectX::Mouse::Get().GetState();
-			renderer.camera.transform.Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
-			if (msState.leftButton)
-				renderer.camera.transform.position = { 0, 0, -5 };
+			pHanderler.TickPhysics();
 
 			renderer.RenderFrame();
 

@@ -2,11 +2,16 @@
 
 using namespace DirectX;
 
+Camera::Camera(Transform* transform)
+    : camTransform(transform)
+{
+}
+
 DirectX::XMMATRIX Camera::GetViewMatrix()
 {
-    XMVECTOR eyePos = transform.position;
-    XMVECTOR lookAt = transform.GetForward();
-    XMVECTOR camUp = transform.GetUp();
+    XMVECTOR eyePos = camTransform->position;
+    XMVECTOR lookAt = camTransform->GetForward();
+    XMVECTOR camUp = camTransform->GetUp();
 
     return XMMatrixLookToLH(eyePos, lookAt, camUp);
 }

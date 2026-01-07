@@ -94,6 +94,13 @@ void Renderer::Clean()
 
 void Renderer::RenderFrame()
 {
+	if (camera == nullptr) {
+		devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::Red);
+		devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		RenderText("NO CAMERA", 100, 100);
+		swapchain->Present(0, 0);
+		return; // cam is null, make screen red.
+	}
 
 	// Clear back buffer with desired color
 	devcon->ClearRenderTargetView(backbuffer, DirectX::Colors::Aqua);
@@ -101,15 +108,16 @@ void Renderer::RenderFrame()
 	
 	DrawSkybox();
 
+	
 
 	CBuffer_PerObject cBufferPerObjectData;
 	//CBuffer_Lighting cBufferLightingData;
 	//cBufferPerObjectData.WVP = XMMatrixIdentity();
-	XMMATRIX view = camera.GetViewMatrix();
-	XMMATRIX projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+	XMMATRIX view = camera->GetViewMatrix();
+	XMMATRIX projection = camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
 
 	CBuffer_PerFrame cBufferPerFrameData;
-	XMStoreFloat3(&cBufferPerFrameData.cameraPos, camera.transform.position);
+	XMStoreFloat3(&cBufferPerFrameData.cameraPos, camera->camTransform->position);
 	devcon->UpdateSubresource(cBuffer_PerFrame, 0, 0, &cBufferPerFrameData, 0, 0);
 	devcon->VSSetConstantBuffers(11, 1, &cBuffer_PerFrame);
 
@@ -169,10 +177,10 @@ void Renderer::DrawSkybox()
 	// Constant buffer data (manually rolling this for skybox. Usually handled in RenderFrame)
 	CBuffer_PerObject cbuf;
 	XMMATRIX translation, projection, view;
-	XMVECTOR camPos = camera.transform.position;
+	XMVECTOR camPos = camera->camTransform->position;
 	translation = XMMatrixTranslation(XMVectorGetX(camPos), XMVectorGetY(camPos), XMVectorGetZ(camPos));
-	projection = camera.GetProjectionMatrix(window.GetWidth(), window.GetHeight());
-	view = camera.GetViewMatrix();
+	projection = camera->GetProjectionMatrix(window.GetWidth(), window.GetHeight());
+	view = camera->GetViewMatrix();
 	cbuf.WVP = translation * view * projection;
 	devcon->UpdateSubresource(cBuffer_PerObject, 0, 0, &cbuf, 0, 0);
 	devcon->VSSetConstantBuffers(12, 1, &cBuffer_PerObject);

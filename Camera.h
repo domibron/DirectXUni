@@ -9,7 +9,9 @@ struct DirectX::XMMATRIX;
 class Camera
 {
 public:
-	Transform transform;
+	Camera(Transform* transform);
+
+	Transform* camTransform;
 
 	float fov = 65;
 	float nearClippingPlane = 0.1f;
