@@ -236,6 +236,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="Common.hlsli" />
     <None Include="Lighting.hlsli" />
     <None Include="packages.config" />

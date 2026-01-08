@@ -46,19 +46,28 @@ int WINAPI WinMain(
 	Mesh mesh_block{ renderer, "Assets/block.obj" };
 	Mesh mesh_sphere{ renderer, "Assets/Sphere.obj" };
 	Mesh mesh_grass{ renderer, "Assets/grass.obj", true };
+	
 	Texture tex_box{ renderer, "Assets/Box.bmp" };
 	Texture tex_grass{ renderer, "Assets/grass.png", true };
 	Texture tex_skybox{ renderer, "Assets/skybox01.dds", false, Texture::TextureType::Cubemap };
+	
 	Material mat_unlit{ "Unlit", renderer, "Compiled Shaders/VertexShader.cso", "Compiled Shaders/PixelShader.cso", &tex_box };
 	Material mat_skybox{ "Skybox", renderer, "Compiled Shaders/SkyboxVShader.cso", "Compiled Shaders/SkyboxPShader.cso", &tex_skybox };
+	
 	Material_Lit mat_lit{ "Lit", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_box };
 	mat_lit.SetReflectionTexture(&tex_skybox);
 	mat_lit.reflectiveness = 0.001f;
+
+	Material_Lit mat_litRef{ "LitRefective", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_box };
+	mat_litRef.SetReflectionTexture(&tex_skybox);
+	mat_litRef.reflectiveness = 0.6f;
+	
 	Material_Lit mat_litGrass{ "LitGrass", renderer, "Compiled Shaders/ReflectiveVShader.cso", "Compiled Shaders/ReflectivePShader.cso", &tex_grass };
 	mat_lit.SetReflectionTexture(&tex_skybox);
 	mat_litGrass.reflectiveness = 0.01f;
 
 	BlockMesh bm_block{ renderer };
+
 	PlayerEntity player;
 
 
@@ -69,21 +78,11 @@ int WINAPI WinMain(
 
 	pHanderler.RegisterRigidBody(&player);
 
-	//player.SetVelocity(DirectX::XMVECTOR{ 1, 0, 0, 0 });
-	/*
-	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
-	Update function which can be overridden inside child classes. In other words, you could make a “SpinningGameObject” child
-	class which overrides the Update function to rotate itself. You then just call the Update function on all GameObjects every
-	frame.
-	*/
-	//if (renderer.camera != nullptr)
-	//renderer.camera->camTransform->position = DirectX::XMVectorSetZ(renderer.camera->camTransform->position, -1);
-
 	GameObject go_skybox{ "Skybox", &mesh_cube, &mat_skybox };
 	renderer.skyboxObject = &go_skybox;
 
 	GameObject go1{ "Cube", &mesh_cube, &mat_lit };
-	GameObject go2{ "Sphere", &mesh_sphere, &mat_lit };
+	GameObject go2{ "Sphere", &mesh_sphere, &mat_litRef };
 	GameObject go_grass{ "Grass", &mesh_grass, &mat_litGrass };
 
 
@@ -94,13 +93,13 @@ int WINAPI WinMain(
 	ChunkData chunk{ &renderer, &pHanderler, XMVectorSet(0,0,0,1), &bm_block, &mat_lit};
 	chunk.LoadChunk();
 
-	go1.transform.position = DirectX::XMVectorSet(-2, 0, 0, 1);
-	go2.transform.position = DirectX::XMVectorSet(2, 0, 0, 1);
-	//go3.transform.position = DirectX::XMVectorSet(-4, 0, 0, 1);
-	go_grass.transform.position = DirectX::XMVectorSet(-5, -0.5f, 0, 1);
+	go1.transform.position = DirectX::XMVectorSet(1, 5, -2, 1);
+	go2.transform.position = DirectX::XMVectorSet(6, 7, -2, 1);
+	go_grass.transform.position = DirectX::XMVectorSet(1, 3, 1, 1);
 
-	renderer.pointLights[0] = { XMVECTOR{-1, 1, -3}, {0.85f, 0, 0.85f}, 10, true };
-	renderer.pointLights[1] = { XMVECTOR{1, -1, -4}, {0, 0.85f, 0.85f}, 20, true };
+	renderer.pointLights[0] = { XMVECTOR{4, 4, 2}, {0.85f, 0, 0.85f}, 120, true };
+	renderer.pointLights[2] = { XMVECTOR{12, 4, 8}, {0, 0.85f, 0.85f}, 120, true };
+	renderer.pointLights[3] = { XMVECTOR{4, 4, 12}, {0.85f, 0.85f, 0}, 120, true };
 
 	// Used to hold windows event messages
 	MSG msg;
