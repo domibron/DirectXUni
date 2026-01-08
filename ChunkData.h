@@ -58,6 +58,9 @@ public:
 	// position based from the chunk.
 	bool BlockOcupyingChunkPos(DirectX::XMVECTOR position);
 
+	void AddBlockToLocation(DirectX::XMVECTOR positon);
+	void RemoveBlock(BlockObject* block);
+
 	//std::vector<std::unique_ptr<GameObject>> blocksInChunk;
 	ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler, DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* mat);
 };

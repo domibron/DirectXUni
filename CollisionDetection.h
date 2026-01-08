@@ -4,7 +4,6 @@
 
 class BlockObject;
 
-class AABBCollider;
 //class Transform;
 
 
@@ -16,6 +15,6 @@ struct RayCollision;
 class CollisionDetection
 {
 public:
-	bool RayAABBIntersection(Ray& r, DirectX::XMVECTOR& pos, AABBCollider& collider, RayCollision<BlockObject>& collision);
+	bool RayAABBIntersection(Ray& r, BlockObject* collider, RayCollision<BlockObject>& collision);
 };
 

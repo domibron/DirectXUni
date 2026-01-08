@@ -10,8 +10,9 @@ class RigidBody
 {
 private:
 	DirectX::XMVECTOR velocity;
-	float yGravity = -0.981f;
+	float yGravity = -9.81f * 0.5f;
 	Transform* transform;
+	float drag = 0.2f;
 
 public:
 	RigidBody(Transform* transform, bool useGravity = true, float cXPos = 0, float cYPos = 0, float cZPos = 0, float cXSize = 1, float cYSize = 1, float cZSize = 1);

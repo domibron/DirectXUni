@@ -7,11 +7,20 @@
 #include "MovingEntity.h"
 #include "BlockObject.h"
 
+#include "CollisionDetection.h"
+#include "Ray.h"
+
+#include "Transform.h"
 
 #include <iostream>
+#include <vector>
 
-PhysicsHanderler::PhysicsHanderler(TimeKeeping* tKeeping)
-	: timeKeeping(tKeeping)
+#include <cmath>
+
+float Dist(DirectX::XMVECTOR a, DirectX::XMVECTOR b);
+
+PhysicsHanderler::PhysicsHanderler(TimeKeeping* tKeeping, Transform* cameraTransform)
+	: timeKeeping(tKeeping), camTransform(cameraTransform)
 {
 
 }
@@ -24,6 +33,14 @@ void PhysicsHanderler::RegisterStaticBody(BlockObject* staticObject)
 void PhysicsHanderler::RegisterRigidBody(MovingEntity* rigidBody)
 {
 	movingEntities.push_back(rigidBody);
+}
+
+void PhysicsHanderler::RemoveStaticBody(BlockObject* staticObject)
+{
+	auto foundEntity = std::find(blocks.begin(), blocks.end(), staticObject);
+	if (foundEntity != blocks.end()) {
+		blocks.erase(foundEntity);
+	}
 }
 
 void PhysicsHanderler::TickPhysics()
@@ -39,6 +56,8 @@ void PhysicsHanderler::TickPhysics()
 		for (auto staticObject : blocks){
 			if (movingEntity->CheckForCollision(staticObject->GetBounds(), staticObject->transform.position)) {
 				// collision detected!
+				//std::cout << "Collision" << std::endl;
+
 				DirectX::XMVECTOR overlapAmount = movingEntity->GetOverlapAmount(staticObject->GetBounds(), staticObject->transform.position);
 
 				// do something to the velocity.
@@ -79,4 +98,61 @@ void PhysicsHanderler::TickPhysics()
 			}
 		}
 	}
+
+
+	DirectX::XMVECTOR camPos = camTransform->position;
+
+	Ray ray{ camPos, camTransform->GetForward() };
+	std::vector<RayCollision<BlockObject>> collisionRes;
+	CollisionDetection cd;
+
+	std::vector<BlockObject*> hitObjects;
+
+	for (auto staticObject : blocks) {
+		RayCollision<BlockObject> colision;
+
+		if (cd.RayAABBIntersection(ray, staticObject, colision))
+		{
+			//std::cout << "HIT" << std::endl;
+			//std::cout << DirectX::XMVectorGetX(camTransform->GetForward()) << std::endl;
+			hitObjects.push_back(staticObject);
+			collisionRes.push_back(colision);
+		}
+	}
+
+
+	if (hitObjects.size() > 0) {
+		DirectX::XMVECTOR closestPos;
+		float lastDist = -1;
+		int index = 0;
+
+		for (int i = 0; i < hitObjects.size(); i++) {
+			if (i == 0) {
+				closestPos = hitObjects[i]->transform.position;
+				lastDist = Dist(camPos, hitObjects[i]->transform.position);
+				index = i;
+			}
+			else if (Dist(camPos, hitObjects[i]->transform.position) < lastDist) {
+				closestPos = hitObjects[i]->transform.position;
+				lastDist = Dist(camPos, hitObjects[i]->transform.position);
+				index = i;				
+			}
+		}
+
+		slectedBlock = hitObjects[index];
+		hitPoint = collisionRes[index].collidedAt;
+	}
+	else {
+		slectedBlock = nullptr;
+	}
+}
+
+float Dist(DirectX::XMVECTOR a, DirectX::XMVECTOR b) {
+	using namespace DirectX;
+
+	float x = XMVectorGetX(a) - XMVectorGetX(b);
+	float y = XMVectorGetY(a) - XMVectorGetY(b);
+	float z = XMVectorGetZ(a) - XMVectorGetZ(b);
+
+	return sqrt((x * x) + (y * y) + (z * z));
 }

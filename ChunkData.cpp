@@ -22,6 +22,7 @@
 //	}
 //}
 
+
 void ChunkData::LoadChunk()
 {
 	//if (blocksInChunk.size() <= 0) return;
@@ -41,10 +42,6 @@ void ChunkData::UnloadChunk()
 	for (auto& pair : blocksInChunk) {
 		renderer->RemoveGameObject(pair.second.get());
 	}
-
-	//for (int i = 0; i < blocksInChunk.size(); i++) {
-	//	renderer->RemoveGameObject(blocksInChunk[i].get());
-	//}
 }
 
 bool ChunkData::BlockOcupyingChunkPos(DirectX::XMVECTOR position)
@@ -69,6 +66,49 @@ bool ChunkData::BlockOcupyingChunkPos(DirectX::XMVECTOR position)
 	}
 
 	return true; // we dont need to iterate, just know the key exsists.
+}
+
+void ChunkData::RemoveBlock(BlockObject* block)
+{
+	for (auto& pair : blocksInChunk) {
+		if (pair.second.get() == block) {
+
+			renderer->RemoveGameObject(pair.second.get());
+			pHanderler->RemoveStaticBody(pair.second.get());
+
+			blocksInChunk.erase(pair.first);
+			break;
+		}
+	}
+
+	using namespace DirectX;
+
+	for (auto& pair : blocksInChunk) {
+
+		// add teh blocks to physisc.
+		pHanderler->RegisterStaticBody(pair.second.get());
+
+		// toggle which faces are visible.
+
+		BlockPosition pos = pair.first;
+		XMVECTOR vectorPos = XMVectorSet(pos.x, pos.y, pos.z, 1);
+
+		BlockObject* blockPtr = pair.second.get();
+
+		bool showBackFace, showTopFace, showFrontFace, showBottomFace, showRightFace, showLeftFace;
+
+		XMVECTOR res = vectorPos + XMVectorSet(0, 0, 1, 0);
+
+
+		showBackFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 0, 1.0f, 0));
+		showFrontFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 0, -1.0f, 0));
+		showBottomFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, -1.0f, 0, 0));
+		showTopFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 1.0f, 0, 0));
+		showLeftFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(-1.0f, 0, 0, 0));
+		showRightFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(1.0f, 0, 0, 0));
+
+		blockPtr->SetBlockRenderFaces(showBackFace, showTopFace, showFrontFace, showBottomFace, showRightFace, showLeftFace);
+	}
 }
 
 ChunkData::ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler , DirectX::XMVECTOR chunkPosition, BlockMesh* blockMesh, Material* material)
@@ -100,7 +140,6 @@ ChunkData::ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler , Di
 		}
 	}
 
-
 	for (auto& pair : blocksInChunk) {
 
 		// add teh blocks to physisc.
@@ -118,13 +157,14 @@ ChunkData::ChunkData(Renderer* renderer, PhysicsHanderler* physicsHanderler , Di
 		XMVECTOR res = vectorPos + XMVectorSet(0, 0, 1, 0);
 
 
-		showBackFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    0,    1.0f, 0));
-		showFrontFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    0,   -1.0f, 0));
-		showBottomFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,   -1.0f, 0,    0));
-		showTopFace		=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 0,    1.0f, 0,    0));
-		showLeftFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet(-1.0f, 0,    0,    0));
-		showRightFace	=	!BlockOcupyingChunkPos(vectorPos	+ XMVectorSet( 1.0f, 0,    0,    0));
+		showBackFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 0, 1.0f, 0));
+		showFrontFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 0, -1.0f, 0));
+		showBottomFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, -1.0f, 0, 0));
+		showTopFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(0, 1.0f, 0, 0));
+		showLeftFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(-1.0f, 0, 0, 0));
+		showRightFace = !BlockOcupyingChunkPos(vectorPos + XMVectorSet(1.0f, 0, 0, 0));
 
 		blockPtr->SetBlockRenderFaces(showBackFace, showTopFace, showFrontFace, showBottomFace, showRightFace, showLeftFace);
 	}
+	
 }

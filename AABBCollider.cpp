@@ -66,25 +66,17 @@ bool AABBCollider::CheckForCollision( AABBData secondObject, DirectX::XMVECTOR s
 	float szMin = offsetInWorldSZ - (secondObject.zSize / 2.0f);
 	float szMax = offsetInWorldSZ + (secondObject.zSize / 2.0f);
 
-	bool xCollide = false, yCollide = false, zCollide = false;
+	//bool xCollide = false, yCollide = false, zCollide = false;
 
 	// possible failure of collison if fist min is less than second min and first max is greater than second max.
-	if ((fxMax > sxMin && fxMax < sxMax) || (fxMin < sxMax && fxMin > sxMin)) {
-		xCollide = true;
+	if (fxMax > sxMin && fxMin < sxMax && 
+		fyMax > syMin && fyMin < syMax &&
+		fzMax > szMin && fzMin < szMax){
+		return true;// a collision has taken place.
 	}
 	else return false;
 
-	if ((fyMax > syMin && fyMax < syMax) || (fyMin < syMax && fyMin > syMin)) {
-		yCollide = true;
-	}
-	else return false;
-
-	if ((fzMax > szMin && fzMax < szMax) || (fzMin < szMax && fzMin > szMin)) {
-		zCollide = true;
-	}
-	else return false;
-
-	return true; // a collision has taken place.
+	//return true; // a collision has taken place.
 }
 
 DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX::XMVECTOR secondObjectPos)
@@ -131,37 +123,25 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX
 
 	float x, y, z;
 
-	if (fxMax > sxMin && fxMax < sxMax ) {
+	if (fxMax > sxMin && fxMin < sxMax) {
 		//x = sxMin - fxMax;
-		x = fxMax - sxMin;
-	}
-	else if (fxMin < sxMax && fxMin > sxMin) {
-		//x = sxMax - fxMin;
-		x = fxMin - sxMax;
+		x = (fxMax - sxMin) < (fxMin - sxMax) ? fxMax - sxMin : fxMin - sxMax;
 	}
 	else {
 		x = 0;
 	}
 
-	if (fyMax > syMin && fyMax < syMax) {
+	if (fyMax > syMin && fyMin < syMax) {
 		//y = syMin - fyMax;
-		y = fyMax - syMin;
-	}
-	else if (fyMin < syMax && fyMin > syMin) {
-		//y = syMax - fyMin;
-		y = fyMin - syMax;
+		y = (fyMax - syMin) < (fyMin - syMax) ? fyMax - syMin : fyMin - syMax;
 	}
 	else {
 		y = 0;
 	}
 
-	if (fzMax > szMin && fzMax < szMax) {
+	if (fzMax > szMin && fzMin < szMax) {
 		//z = szMin - fzMax;
-		z = fzMax - szMin;
-	}
-	else if (fzMin < szMax && fzMin > szMin) {
-		//z = szMax - fzMin;
-		z = fzMin - szMax;
+		z = (fzMax - szMin) < (fzMin - szMax) ? fzMax - szMin : fzMin - szMax;
 	}
 	else {
 		z = 0;

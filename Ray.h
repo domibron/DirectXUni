@@ -10,7 +10,7 @@ public:
 	Ray(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
 
 	DirectX::XMVECTOR GetPosition() { return position; }
-	DirectX::XMVECTOR GetDirection() { return direction; }
+	DirectX::XMVECTOR GetDirection() { return DirectX::XMVector3Normalize(direction); }
 
 	
 protected:

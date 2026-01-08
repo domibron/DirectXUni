@@ -25,7 +25,7 @@ int WINAPI WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow) 
+	_In_ int nCmdShow)
 {
 
 	OpenConsole();
@@ -52,16 +52,17 @@ int WINAPI WinMain(
 	mat_litGrass.reflectiveness = 0.01f;
 
 	BlockMesh bm_block{ renderer };
-
-
-	PhysicsHanderler pHanderler{&timeKeeping};
-	
 	PlayerEntity player;
+
+
+	PhysicsHanderler pHanderler{ &timeKeeping, &player.transform };
+
 	renderer.camera = player.GetCamera();
-	player.transform.position = { 8, 6, 8 };
+	player.transform.position = { 8, 8, 8 };
 
 	pHanderler.RegisterRigidBody(&player);
 
+	//player.SetVelocity(DirectX::XMVECTOR{ 1, 0, 0, 0 });
 	/*
 	You can extend your GameObject class further by creating a virtual or abstract (more often referred to as pure virtual in C++)
 	Update function which can be overridden inside child classes. In other words, you could make a “SpinningGameObject” child
@@ -126,30 +127,41 @@ int WINAPI WinMain(
 
 				if (kbState.S) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetForward(), 0)) * -1.0f);
 				}
 
 				if (kbState.W) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetForward(), 0)) * 1.0f );
 				}
 
 				if (kbState.A) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetRight(), 0)) * -1.0f);
 
 				}
 
 				if (kbState.D) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
+					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetRight(), 0)) * 1.0f );
 
+				}
+
+				if (kbState.E) {
+					player.transform.position = { 8, 8, 8 };
 				}
 
 				auto msState = DirectX::Mouse::Get().GetState();
 				player.transform.Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
+
 				if (msState.leftButton)
-					player.transform.position = { 8, 6, 8 };
+				{
+					if (pHanderler.slectedBlock != nullptr) {
+						// should destroy gameobject.
+						chunk.RemoveBlock(pHanderler.slectedBlock);
+					}
+				}
+
 			}
 
 			pHanderler.TickPhysics();

@@ -4,46 +4,49 @@
 
 #include "AABBCollider.h"
 
+#include "BlockObject.h"
+
 #include "Ray.h"
 
-bool CollisionDetection::RayAABBIntersection(Ray& r, DirectX::XMVECTOR& pos, AABBCollider& collider, RayCollision<BlockObject>& collision)
+bool CollisionDetection::RayAABBIntersection(Ray& r, BlockObject* collider, RayCollision<BlockObject>& collision)
 {
     using namespace DirectX;
 
 
-    AABBData data = collider.GetBounds();
+    AABBData data = collider->GetBounds();
+    XMVECTOR boxPos = collider->transform.position;
 
-    XMVECTOR boxMin = pos + XMVectorSet(data.xPos, data.yPos, data.zPos, 0) - XMVectorSet(data.xSize / 2.0f, data.ySize / 2.0f, data.zSize / 2.0f, 0);
-    XMVECTOR boxMax = pos + XMVectorSet(data.xPos, data.yPos, data.zPos, 0) + XMVectorSet(data.xSize / 2.0f, data.ySize / 2.0f, data.zSize / 2.0f, 0);
+    XMVECTOR boxMin = (boxPos + XMVectorSet(data.xPos, data.yPos, data.zPos, 0)) - XMVectorSet(data.xSize / 2.0f, data.ySize / 2.0f, data.zSize / 2.0f, 0);
+    XMVECTOR boxMax = (boxPos + XMVectorSet(data.xPos, data.yPos, data.zPos, 0)) + XMVectorSet(data.xSize / 2.0f, data.ySize / 2.0f, data.zSize / 2.0f, 0);
 
     XMVECTOR rayPos = r.GetPosition();
     XMVECTOR rayDir = r.GetDirection();
 
 
-    XMVECTOR tVals = XMVectorSet(-1, -1, -1, 0);
+    XMVECTOR tVals{-1.0f,-1.0f,-1.0f, -0.1f};
 
     //x
     if (XMVectorGetX(rayDir) > 0) {
-        XMVectorSetX(tVals, (XMVectorGetX(boxMin) - XMVectorGetX(rayPos)) / XMVectorGetX(rayDir));
+        tVals = XMVectorSetX(tVals, (XMVectorGetX(boxMin) - XMVectorGetX(rayPos)) / XMVectorGetX(rayDir));
     }
     else if (XMVectorGetX(rayDir) < 0) {
-        XMVectorSetX(tVals, (XMVectorGetX(boxMax) - XMVectorGetX(rayPos)) / XMVectorGetX(rayDir));
+        tVals = XMVectorSetX(tVals, (XMVectorGetX(boxMax) - XMVectorGetX(rayPos)) / XMVectorGetX(rayDir));
     }
 
     //y
     if (XMVectorGetY(rayDir) > 0) {
-        XMVectorSetY(tVals, (XMVectorGetY(boxMin) - XMVectorGetY(rayPos)) / XMVectorGetY(rayDir));
+        tVals = XMVectorSetY(tVals, (XMVectorGetY(boxMin) - XMVectorGetY(rayPos)) / XMVectorGetY(rayDir));
     }
     else if (XMVectorGetY(rayDir) < 0) {
-        XMVectorSetY(tVals, (XMVectorGetY(boxMax) - XMVectorGetY(rayPos)) / XMVectorGetY(rayDir));
+        tVals = XMVectorSetY(tVals, (XMVectorGetY(boxMax) - XMVectorGetY(rayPos)) / XMVectorGetY(rayDir));
     }
 
     //z
     if (XMVectorGetZ(rayDir) > 0) {
-        XMVectorSetZ(tVals, (XMVectorGetZ(boxMin) - XMVectorGetZ(rayPos)) / XMVectorGetZ(rayDir));
+        tVals = XMVectorSetZ(tVals, (XMVectorGetZ(boxMin) - XMVectorGetZ(rayPos)) / XMVectorGetZ(rayDir));
     }
     else if (XMVectorGetZ(rayDir) < 0) {
-        XMVectorSetZ(tVals, (XMVectorGetZ(boxMax) - XMVectorGetZ(rayPos)) / XMVectorGetZ(rayDir));
+        tVals = XMVectorSetZ(tVals, (XMVectorGetZ(boxMax) - XMVectorGetZ(rayPos)) / XMVectorGetZ(rayDir));
     }
 
     float bestT = XMVectorGetX(tVals);
@@ -75,7 +78,7 @@ bool CollisionDetection::RayAABBIntersection(Ray& r, DirectX::XMVECTOR& pos, AAB
         return false; // best intersection doesnt hit the box.
     }
 
-
+    collision.node = collider;
     collision.collidedAt = intersection;
     collision.rayDistance = bestT;
 

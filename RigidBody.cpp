@@ -4,7 +4,11 @@
 
 #include "Transform.h"
 
+#include <cmath>
+
 //#include <iostream>
+
+float Mag(DirectX::XMVECTOR a);
 
 RigidBody::RigidBody(Transform* transform, bool useGravity, float cXPos, float cYPos, float cZPos, float cXSize, float cYSize, float cZSize)
 	: transform(transform), useGravity(useGravity), AABBCollider(transform, cXSize, cYSize, cZSize, cXPos, cYPos, cZPos )
@@ -21,9 +25,22 @@ void RigidBody::TickThisRigidBodyPhysics(float deltaTime)
 
 	}
 
+	if (Mag(velocity) > drag * deltaTime) {
+		velocity = DirectX::XMVectorAdd(velocity, DirectX::XMVectorMultiply(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-DirectX::XMVectorGetX(velocity),
+			-DirectX::XMVectorGetY(velocity), -DirectX::XMVectorGetZ(velocity), 1)), DirectX::XMVectorSet(drag * deltaTime, drag * deltaTime, drag * deltaTime, 1)));
+	}
+
+	if (Mag(velocity) < 0.001f) {
+		velocity = DirectX::XMVECTOR{0,0,0,0};
+		return;
+	}
+
+	
+
 	//std::cout << "pos before " << DirectX::XMVectorGetY(pos) << std::endl;
 	transform->Translate(MultFloatAndXMVector(velocity, deltaTime));
 	//std::cout << "pos after " << DirectX::XMVectorGetY(transform->position) << std::endl;
+
 
 }
 
@@ -51,4 +68,14 @@ void RigidBody::SetVelocityZ(float z)
 void RigidBody::AddToVelocity(DirectX::XMVECTOR velocityToAdd)
 {
 	velocity = DirectX::XMVectorAdd(velocityToAdd, velocityToAdd);
+}
+
+float Mag(DirectX::XMVECTOR a)
+{
+	float x, y, z;
+	x = DirectX::XMVectorGetX(a);
+	y = DirectX::XMVectorGetY(a);
+	z = DirectX::XMVectorGetZ(a);
+
+	return sqrt((x * x) + (y * y) + z * z);
 }
