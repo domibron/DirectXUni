@@ -24,10 +24,12 @@ struct RayCollision {
 	T* node;
 	DirectX::XMVECTOR collidedAt;
 	float rayDistance;
-	RayCollision(T* node, DirectX::XMVECTOR collidedAt, float distance = 0) {
+	DirectX::XMVECTOR normal;
+	RayCollision(T* node, DirectX::XMVECTOR collidedAt, DirectX::XMVECTOR normal, float distance = 0)  {
 		this->node = node;
 		this->collidedAt = collidedAt;
 		rayDistance = distance;
+		this->normal = normal;
 	}
 	RayCollision() {
 		node = nullptr;

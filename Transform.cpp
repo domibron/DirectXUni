@@ -6,9 +6,9 @@ XMMATRIX Transform::GetWorldMatrix()
 {
 	// Must follow SRT scale, rotation, transformation when combining matrices.
 
-	XMMATRIX scaleMat = XMMatrixScalingFromVector(scale);
-	XMMATRIX rotationMat = XMMatrixRotationRollPitchYawFromVector(rotation);
-	XMMATRIX translationMat = XMMatrixTranslationFromVector(position);
+	XMMATRIX scaleMat = XMMatrixScalingFromVector(XMVectorSetW(scale, 1.0f));
+	XMMATRIX rotationMat = XMMatrixRotationRollPitchYawFromVector(XMVectorSetW(rotation, 1.0f));
+	XMMATRIX translationMat = XMMatrixTranslationFromVector(XMVectorSetW(position, 1.0f));
 	return scaleMat * rotationMat * translationMat;
 
 	// If instead you used XMFLOAT3s instead of XMVECTORs for your position, rotation and scale, 
@@ -35,7 +35,7 @@ XMVECTOR Transform::GetForward()
 		cosf(pitch) * sinf(yaw), // X
 		sinf(pitch),			 // Y
 		cosf(pitch) * cosf(yaw), // Z
-		0.0f
+		1.0f
 	};
 
 	return XMVector3Normalize(direction);
@@ -51,7 +51,7 @@ XMVECTOR Transform::GetRight()
 		cosf(roll) * cosf(yaw) + sinf(roll) * sinf(pitch) * sinf(yaw),  // X
 		sinf(roll) * cosf(pitch),										// Y
 		cosf(roll) * -sinf(yaw) + sinf(roll) * sinf(pitch) * cosf(yaw), // Z
-		0.0f
+		1.0f
 	};
 
 	// This works without camera roll
@@ -68,6 +68,13 @@ XMVECTOR Transform::GetRight()
 XMVECTOR Transform::GetUp()
 {
 	XMVECTOR cross = XMVector3Cross(GetForward(), GetRight());
+
+	return XMVector3Normalize(cross);
+}
+
+DirectX::XMVECTOR Transform::GetForwardFromRightAndWorldUp()
+{
+	XMVECTOR cross = XMVector3Cross(GetRight(), XMVECTOR{ 0,1,0 });
 
 	return XMVector3Normalize(cross);
 }

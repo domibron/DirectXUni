@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 
-#define MAX_BLOCKS_IN_CHUNK 768
+#define MAX_BLOCKS_IN_CHUNK 5120
 #define WIDTH 16
 #define DEPTH 16
 
@@ -23,7 +23,7 @@ class ChunkData
 {
 private:
 	struct BlockPosition {
-		float x, y, z;
+		int x, y, z;
 	};
 
 	struct BlockPositionHash {
@@ -41,19 +41,28 @@ private:
 		}
 	};
 
-	int height = 3;
+	int height = 20;
 	Renderer* renderer;
 	PhysicsHanderler* pHanderler;
 
+	BlockMesh* blockMesh;
+	Material* blockMat;
+
 	Transform chunkTransform;
+
+	std::vector<BlockPosition> markedForRemoval;
 
 	std::unordered_map<BlockPosition, std::unique_ptr<BlockObject>, BlockPositionHash, BlockPositionEqual> blocksInChunk;
 
+
 public:
+	void UpdateAllBlockFaces();
 	//void AddBlockToChunk(BlockObject* block);
 	//void RemoveBlockFromChunk(BlockObject* block);
 	void LoadChunk();
 	void UnloadChunk();
+
+	void RemovedMarkedForDeleted();
 
 	// position based from the chunk.
 	bool BlockOcupyingChunkPos(DirectX::XMVECTOR position);

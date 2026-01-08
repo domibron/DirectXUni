@@ -21,6 +21,9 @@ using namespace DirectX; // ? fixes the XMVector * float.
 
 void OpenConsole();
 
+const float speed = 5.0f;
+
+
 int WINAPI WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -58,7 +61,7 @@ int WINAPI WinMain(
 	PhysicsHanderler pHanderler{ &timeKeeping, &player.transform };
 
 	renderer.camera = player.GetCamera();
-	player.transform.position = { 8, 8, 8 };
+	player.transform.position = { 8, 8, 8, 1 };
 
 	pHanderler.RegisterRigidBody(&player);
 
@@ -125,30 +128,47 @@ int WINAPI WinMain(
 
 			if (renderer.camera != nullptr) {
 
+				DirectX::XMVECTOR moveDir{ 0,0,0,1 };
+
 				if (kbState.S) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * -10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetForward(), 0)) * -1.0f);
+					moveDir += (DirectX::XMVector3Normalize(DirectX::XMVectorSetY(player.transform.GetForwardFromRightAndWorldUp(), 1)) * -speed);
 				}
 
 				if (kbState.W) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetForward() * 10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetForward(), 0)) * 1.0f );
+					moveDir += (DirectX::XMVector3Normalize(DirectX::XMVectorSetY(player.transform.GetForwardFromRightAndWorldUp(), 1)) * speed);
 				}
 
 				if (kbState.A) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * -10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetRight(), 0)) * -1.0f);
+					moveDir += (DirectX::XMVector3Normalize(DirectX::XMVectorSetY(player.transform.GetRight(), 1)) * -speed);
 
 				}
 
 				if (kbState.D) {
 					//renderer.camera->camTransform->Translate(renderer.camera->camTransform->GetRight() * 10.0f * timeKeeping.GetDeltaTime());
-					player.SetVelocity(DirectX::XMVector3Normalize(DirectX::XMVectorSetY(renderer.camera->camTransform->GetRight(), 0)) * 1.0f );
+					moveDir += (DirectX::XMVector3Normalize(DirectX::XMVectorSetY(player.transform.GetRight(), 1)) * speed);
+
+				}
+
+				moveDir = DirectX::XMVectorSetY(moveDir, 0);
+
+				moveDir = moveDir - (player.GetVelocityMagnitude() > 0.2f ? player.GetVelocity() : XMVECTOR{0,0,0,0});
+
+				moveDir = DirectX::XMVectorSetY(moveDir, 0);
+
+				player.SetVelocityX(DirectX::XMVectorGetX(moveDir));
+				player.SetVelocityZ(DirectX::XMVectorGetZ(moveDir));
+
+				if (kbState.Space) {
+					if (DirectX::XMVectorGetY(player.GetVelocity()) < 0.1f)
+						player.AddToVelocity(XMVECTOR{0,1,0,1} * 3.0f);
 
 				}
 
 				if (kbState.E) {
-					player.transform.position = { 8, 8, 8 };
+					player.transform.position = { 8, 8, 8, 1 };
 				}
 
 				auto msState = DirectX::Mouse::Get().GetState();
@@ -159,10 +179,23 @@ int WINAPI WinMain(
 					if (pHanderler.slectedBlock != nullptr) {
 						// should destroy gameobject.
 						chunk.RemoveBlock(pHanderler.slectedBlock);
+						pHanderler.slectedBlock = nullptr;
+					}
+				}
+
+				if (msState.rightButton) {
+					if (pHanderler.slectedBlock != nullptr) {
+						chunk.AddBlockToLocation(pHanderler.slectedBlock->transform.position + (pHanderler.normal));
 					}
 				}
 
 			}
+
+			std::cout << DirectX::XMVectorGetX(player.transform.position) << " " << DirectX::XMVectorGetZ(player.transform.position) << " " << DirectX::XMVectorGetW(player.transform.position) << std::endl;
+
+			chunk.RemovedMarkedForDeleted();
+
+			// has any objects been deleted?
 
 			pHanderler.TickPhysics();
 
@@ -171,6 +204,8 @@ int WINAPI WinMain(
 			
 			// we tick after becuse we need to 
 			timeKeeping.Tick();
+
+			
 		}
 	}
 

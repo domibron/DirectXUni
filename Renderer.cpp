@@ -126,9 +126,25 @@ void Renderer::RenderFrame()
 	//devcon->VSSetShader(pVS, 0, 0);
 	//devcon->PSSetShader(pPS, 0, 0);
 
+	std::vector<GameObject*> removeObjects;
+
 	for (auto go : gameObjects) {
 	
-		
+		if (go == nullptr) {
+			removeObjects.push_back(go);
+			continue;
+		}
+
+		if (go->mesh == nullptr) {
+			removeObjects.push_back(go);
+			continue;
+		}
+
+		if (go->markedForDeletion) {
+			removeObjects.push_back(go);
+			continue;
+		}
+
 		// Transform
 		XMMATRIX world = go->transform.GetWorldMatrix();
 		cBufferPerObjectData.World = world;
@@ -146,6 +162,10 @@ void Renderer::RenderFrame()
 		go->material->UpdateMaterial(go);
 		go->material->Bind();
 		go->RenderObject();
+	}
+
+	for (auto go : removeObjects) {
+		RemoveGameObject(go);
 	}
 
 	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and

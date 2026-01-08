@@ -10,6 +10,8 @@ class MovingEntity
 public:
 	MovingEntity(bool useGravity = true, float cXPos = 0, float cYPos = 0, float cZPos = 0, float cXSize = 1.0f, float cYSize = 1.0f, float cZSize = 1.0f);
 
+	//bool grounded = false;
+
 	Transform transform;
 };
 

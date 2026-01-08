@@ -2,6 +2,8 @@
 
 #include "Transform.h"
 
+#include <cmath>
+
 AABBCollider::AABBCollider(Transform* transform, float xSize, float ySize, float zSize, float xPos, float yPos, float zPos)
 	:boxTrans(transform)
 {
@@ -125,29 +127,51 @@ DirectX::XMVECTOR AABBCollider::GetOverlapAmount( AABBData secondObject, DirectX
 
 	if (fxMax > sxMin && fxMin < sxMax) {
 		//x = sxMin - fxMax;
-		x = (fxMax - sxMin) < (fxMin - sxMax) ? fxMax - sxMin : fxMin - sxMax;
+		float aOverlap = abs(fxMax - sxMin);
+		float bOverlap = abs(sxMax - fxMin);
+
+
+		if (aOverlap < bOverlap)
+			x = -aOverlap;
+		else
+			x = bOverlap;
 	}
 	else {
 		x = 0;
 	}
 
+
 	if (fyMax > syMin && fyMin < syMax) {
 		//y = syMin - fyMax;
-		y = (fyMax - syMin) < (fyMin - syMax) ? fyMax - syMin : fyMin - syMax;
+		float aOverlap = abs(fyMax - syMin);
+		float bOverlap = abs(syMax - fyMin);
+		
+		if (aOverlap < bOverlap)
+			y = -aOverlap;
+		else
+			y = bOverlap;
 	}
 	else {
 		y = 0;
 	}
 
+
 	if (fzMax > szMin && fzMin < szMax) {
 		//z = szMin - fzMax;
-		z = (fzMax - szMin) < (fzMin - szMax) ? fzMax - szMin : fzMin - szMax;
+		float aOverlap = abs(fzMax - szMin);
+		float bOverlap = abs(szMax - fzMin);
+		
+		if (aOverlap < bOverlap)
+			z = -aOverlap;
+		else
+			z = bOverlap;
 	}
 	else {
 		z = 0;
 	}
 
-	return DirectX::XMVectorSet(x, y, z, 0);
+
+	return DirectX::XMVectorSet(x, y, z, 1);
 }
 
 DirectX::XMVECTOR AABBCollider::WhichSideIsFistCollision(AABBData secondObject, DirectX::XMVECTOR secondObjectPos)

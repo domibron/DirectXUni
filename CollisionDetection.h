@@ -14,6 +14,8 @@ struct RayCollision;
 
 class CollisionDetection
 {
+private:
+	float DotProduct(DirectX::XMVECTOR a, DirectX::XMVECTOR b);
 public:
 	bool RayAABBIntersection(Ray& r, BlockObject* collider, RayCollision<BlockObject>& collision);
 };

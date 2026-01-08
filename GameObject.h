@@ -27,5 +27,7 @@ public:
 	GameObject(std::string objectName, Mesh* objectMesh, Material* material);
 
 	virtual void RenderObject();
+
+	bool markedForDeletion = false;
 };
 

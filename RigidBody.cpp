@@ -6,20 +6,22 @@
 
 #include <cmath>
 
+#include <iostream>
+
 //#include <iostream>
 
 float Mag(DirectX::XMVECTOR a);
 
 RigidBody::RigidBody(Transform* transform, bool useGravity, float cXPos, float cYPos, float cZPos, float cXSize, float cYSize, float cZSize)
-	: transform(transform), useGravity(useGravity), AABBCollider(transform, cXSize, cYSize, cZSize, cXPos, cYPos, cZPos )
+	: rbtransform(transform), useGravity(useGravity), AABBCollider(transform, cXSize, cYSize, cZSize, cXPos, cYPos, cZPos )
 {
-	velocity = DirectX::XMVectorSet(0, 0, 0, 0);
+	velocity = DirectX::XMVectorSet(0, 0, 0, 1);
 }
 
 void RigidBody::TickThisRigidBodyPhysics(float deltaTime)
 {
 	if (useGravity) {
-		velocity = DirectX::XMVectorAdd(velocity, DirectX::XMVECTOR{ 0, yGravity * deltaTime, 0, 0 });
+		velocity = DirectX::XMVectorAdd(velocity, DirectX::XMVECTOR{ 0, yGravity * deltaTime, 0, 1 });
 		//velocity = DirectX::XMVectorSet(DirectX::XMVectorGetX(velocity), DirectX::XMVectorGetY(velocity) + (yGravity * deltaTime), DirectX::XMVectorGetZ(velocity), 1);
 		//std::cout << "vel " << DirectX::XMVectorGetY(velocity) << std::endl;
 
@@ -30,15 +32,15 @@ void RigidBody::TickThisRigidBodyPhysics(float deltaTime)
 			-DirectX::XMVectorGetY(velocity), -DirectX::XMVectorGetZ(velocity), 1)), DirectX::XMVectorSet(drag * deltaTime, drag * deltaTime, drag * deltaTime, 1)));
 	}
 
-	if (Mag(velocity) < 0.001f) {
-		velocity = DirectX::XMVECTOR{0,0,0,0};
+	if (Mag(velocity) <= 0.02f) {
+		velocity = DirectX::XMVECTOR{0,0,0,1};
 		return;
 	}
 
-	
+	//std::cout << "X: " << DirectX::XMVectorGetX(velocity) << " Y: " << DirectX::XMVectorGetY(velocity) << " Z: " << DirectX::XMVectorGetZ(velocity) << std::endl;
 
 	//std::cout << "pos before " << DirectX::XMVectorGetY(pos) << std::endl;
-	transform->Translate(MultFloatAndXMVector(velocity, deltaTime));
+	rbtransform->Translate(MultFloatAndXMVector(velocity, deltaTime));
 	//std::cout << "pos after " << DirectX::XMVectorGetY(transform->position) << std::endl;
 
 
@@ -70,6 +72,11 @@ void RigidBody::AddToVelocity(DirectX::XMVECTOR velocityToAdd)
 	velocity = DirectX::XMVectorAdd(velocityToAdd, velocityToAdd);
 }
 
+float RigidBody::GetVelocityMagnitude()
+{
+	return Mag(velocity);
+}
+
 float Mag(DirectX::XMVECTOR a)
 {
 	float x, y, z;
@@ -77,5 +84,5 @@ float Mag(DirectX::XMVECTOR a)
 	y = DirectX::XMVectorGetY(a);
 	z = DirectX::XMVectorGetZ(a);
 
-	return sqrt((x * x) + (y * y) + z * z);
+	return sqrt((x * x) + (y * y) + (z * z));
 }

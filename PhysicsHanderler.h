@@ -29,5 +29,6 @@ public:
 
 	BlockObject* slectedBlock = nullptr;
 	DirectX::XMVECTOR hitPoint;
+	DirectX::XMVECTOR normal;
 };
 

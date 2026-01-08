@@ -7,9 +7,9 @@
 class Transform
 {
 public:
-	DirectX::XMVECTOR position{ 0, 0, 0 };
-	DirectX::XMVECTOR rotation{ 0, 0, 0 };
-	DirectX::XMVECTOR scale{ 1, 1, 1 };
+	DirectX::XMVECTOR position{ 0, 0, 0, 1 };
+	DirectX::XMVECTOR rotation{ 0, 0, 0, 1 };
+	DirectX::XMVECTOR scale{ 1, 1, 1, 1 };
 
 	DirectX::XMMATRIX GetWorldMatrix();
 	void Translate(DirectX::XMVECTOR translation);
@@ -18,5 +18,6 @@ public:
 	DirectX::XMVECTOR GetForward();
 	DirectX::XMVECTOR GetRight();
 	DirectX::XMVECTOR GetUp();
+	DirectX::XMVECTOR GetForwardFromRightAndWorldUp();
 };
 
