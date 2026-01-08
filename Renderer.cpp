@@ -171,7 +171,7 @@ void Renderer::RenderFrame()
 	// Since the camera doesn’t move between rendering different objects on the same frame, we can calculate the view and
 	// projection matrices outside of the for loop.
 	
-	//RenderText("Hello World", 100, 100);
+	RenderText("Sample Text", 10, 10);
 
 	// Flip the back and front buffers around. Display on screen
 	swapchain->Present(0, 0);
