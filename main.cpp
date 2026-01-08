@@ -191,7 +191,7 @@ int WINAPI WinMain(
 
 			}
 
-			std::cout << DirectX::XMVectorGetX(player.transform.position) << " " << DirectX::XMVectorGetZ(player.transform.position) << " " << DirectX::XMVectorGetW(player.transform.position) << std::endl;
+			//std::cout << DirectX::XMVectorGetX(player.transform.position) << " " << DirectX::XMVectorGetZ(player.transform.position) << " " << DirectX::XMVectorGetW(player.transform.position) << std::endl;
 
 			chunk.RemovedMarkedForDeleted();
 
