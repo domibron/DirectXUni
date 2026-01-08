@@ -16,12 +16,16 @@
 #include "BlockObject.h"
 #include "PhysicsHanderler.h"
 #include "PlayerEntity.h"
+#include <cmath>
 
 using namespace DirectX; // ? fixes the XMVector * float.
 
 void OpenConsole();
 
 const float speed = 5.0f;
+
+float placeTimer = 0;
+float breakTimer = 0;
 
 
 int WINAPI WinMain(
@@ -174,18 +178,29 @@ int WINAPI WinMain(
 				auto msState = DirectX::Mouse::Get().GetState();
 				player.transform.Rotate({ -(float)msState.y * 0.001f, (float)msState.x * 0.001f, 0 });
 
+				//std::cout << DirectX::XMVectorGetX(player.transform.rotation) << std::endl;
+
+				if (DirectX::XMConvertToDegrees(DirectX::XMVectorGetX(player.transform.rotation)) > 90)
+					player.transform.rotation = DirectX::XMVectorSetX(player.transform.rotation, DirectX::XMConvertToRadians(90));
+				else if (DirectX::XMConvertToDegrees(DirectX::XMVectorGetX(player.transform.rotation)) < -90)
+					player.transform.rotation = DirectX::XMVectorSetX(player.transform.rotation, DirectX::XMConvertToRadians(-90));
+
+				if (placeTimer >= 0) placeTimer-= timeKeeping.GetDeltaTime();
+				if (breakTimer >= 0) breakTimer -= timeKeeping.GetDeltaTime(); 
+
 				if (msState.leftButton)
 				{
-					if (pHanderler.slectedBlock != nullptr) {
+					if (pHanderler.slectedBlock != nullptr && placeTimer <= 0) {
 						// should destroy gameobject.
 						chunk.RemoveBlock(pHanderler.slectedBlock);
 						pHanderler.slectedBlock = nullptr;
+						placeTimer = 0.5f;
 					}
 				}
-
-				if (msState.rightButton) {
-					if (pHanderler.slectedBlock != nullptr) {
+				else if (msState.rightButton) {
+					if (pHanderler.slectedBlock != nullptr && breakTimer <= 0) {
 						chunk.AddBlockToLocation(pHanderler.slectedBlock->transform.position + (pHanderler.normal));
+						breakTimer = 0.5f;
 					}
 				}
 

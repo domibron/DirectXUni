@@ -133,20 +133,20 @@ void ChunkData::AddBlockToLocation(DirectX::XMVECTOR positon)
 
 
 	if (posInChunk.y < 0 || posInChunk.y >= height) {
-		std::cout << "Height failed" << std::endl;
+		//std::cout << "Height failed" << std::endl;
 		return;
 	}
 	if (posInChunk.x < 0 || posInChunk.x >= WIDTH) {
-		std::cout << "X failed" << std::endl;
+		//std::cout << "X failed" << std::endl;
 		return;
 	}
 	if (posInChunk.z < 0 || posInChunk.z >= DEPTH) {
-		std::cout << "Z failed" << std::endl;
+		//std::cout << "Z failed" << std::endl;
 		return;
 	}
 
 	if (BlockOcupyingChunkPos(posBasedInChunk)) {
-		std::cout << "Block occupy failed" << std::endl;
+		//std::cout << "Block occupy failed" << std::endl;
 		return;
 	}
 
@@ -163,7 +163,7 @@ void ChunkData::AddBlockToLocation(DirectX::XMVECTOR positon)
 
 	UpdateAllBlockFaces();
 
-	std::cout << "Placed block at X: " << posInChunk.x << " Y: " << posInChunk.y << " Z: " << posInChunk.z << " total: " << blocksInChunk.size();
+	//std::cout << "Placed block at X: " << posInChunk.x << " Y: " << posInChunk.y << " Z: " << posInChunk.z << " total: " << blocksInChunk.size();
 
 
 }
